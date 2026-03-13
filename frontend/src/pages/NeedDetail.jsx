@@ -473,7 +473,22 @@ export default function NeedDetail() {
                           isQualified ? "border-green-400" : "border-gray-200 opacity-75"
                         }`}
                       >
-                        <ScoreCard sme={sme} matchResult={result} />
+                        <ScoreCard
+                          sme={sme}
+                          matchResult={result}
+                          onNotify={async () => {
+                            try {
+                              await applicationsApi.create({
+                                sme_id: sme.id,
+                                need_id,
+                                message: `Invitation du port Nador West Med — score IA : ${result.total_score}/100`,
+                              })
+                              toast.success(`Invitation envoyée à ${sme.name}`)
+                            } catch {
+                              toast.error("Erreur lors de l'envoi de l'invitation")
+                            }
+                          }}
+                        />
                       </div>
                     )
                   })}

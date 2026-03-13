@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import PropTypes from "prop-types"
-import { FileText, MapPin, Clock, ChevronRight, Users } from "lucide-react"
-import { needsApi, applicationsApi } from "../api/client"
+import { FileText, MapPin, Clock, ChevronRight, Users, Zap, Loader2 } from "lucide-react"
+import toast from "react-hot-toast"
+import { needsApi, applicationsApi, matchingApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
 import Pagination from "../components/Pagination"
 
@@ -34,7 +35,23 @@ export default function NeedList() {
   const [filter, setFilter] = useState("Tous")
   const [applicationCounts, setApplicationCounts] = useState({})
   const [page, setPage] = useState(1)
+  const [matchingAll, setMatchingAll] = useState(false)
   const navigate = useNavigate()
+  const role = localStorage.getItem("port2region_role")
+
+  async function runMatchingAll() {
+    setMatchingAll(true)
+    const openNeeds = needs.filter(n => n.status === "open")
+    let done = 0
+    for (const need of openNeeds) {
+      try { await matchingApi.runForNeed(need.id); done++ } catch { /* skip */ }
+    }
+    // Refresh list
+    const nr = await needsApi.list()
+    setNeeds(nr.data.data || [])
+    setMatchingAll(false)
+    toast.success(`Matching terminé — ${done} besoin${done !== 1 ? "s" : ""} analysé${done !== 1 ? "s" : ""}`)
+  }
 
   useEffect(() => {
     Promise.all([
@@ -57,14 +74,27 @@ export default function NeedList() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-xl bg-cyan-50 flex items-center justify-center">
-          <FileText size={18} className="text-teal" />
+      <div className="flex items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-cyan-50 flex items-center justify-center">
+            <FileText size={18} className="text-teal" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Besoins Publiés</h1>
+            <p className="text-xs text-muted">{needs.length} besoin{needs.length !== 1 ? "s" : ""} — port Nador West Med</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-slate-900">Besoins Publiés</h1>
-          <p className="text-xs text-muted">{needs.length} besoin{needs.length !== 1 ? "s" : ""} — port Nador West Med</p>
-        </div>
+        {role === "port" && (
+          <button
+            className="btn-primary text-xs py-1.5 px-3 flex-shrink-0"
+            onClick={runMatchingAll}
+            disabled={matchingAll}
+          >
+            {matchingAll
+              ? <><Loader2 size={13} className="animate-spin" /> Analyse…</>
+              : <><Zap size={13} /> Matching global</>}
+          </button>
+        )}
       </div>
 
       {/* Filters */}

@@ -16,8 +16,9 @@ const APP_STATUS_STYLES = {
   pending:  "bg-amber-50 text-amber-700 border-amber-200",
   accepted: "bg-green-50 text-green-700 border-green-200",
   rejected: "bg-red-50 text-red-700 border-red-200",
+  invited:  "bg-blue-50 text-blue-700 border-blue-300",
 }
-const APP_STATUS_LABELS = { pending: "En attente", accepted: "Accepté", rejected: "Refusé" }
+const APP_STATUS_LABELS = { pending: "En attente", accepted: "Accepté", rejected: "Refusé", invited: "🔔 Invitation port" }
 
 const SECTOR_LABELS = {
   transport:   "Transport & Logistique",
