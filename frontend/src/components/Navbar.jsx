@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom"
 import { Anchor, Building2, FileText, Zap, TrendingUp, BarChart2, Users, List, LayoutDashboard } from "lucide-react"
 import { usePremium } from "./PremiumToggle"
+import NotificationBell from "./NotificationBell"
 
 const NAV_LINKS = {
   pme: [
@@ -88,6 +89,7 @@ export default function Navbar() {
 
           {/* Role badge + premium star + switch */}
           <div className="flex items-center gap-2 shrink-0">
+            <NotificationBell />
             {role && (
               <div className="flex items-center gap-1">
                 <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${ROLE_COLORS[role] ?? "bg-gray-100 text-gray-700"}`}>

@@ -13,6 +13,7 @@ from fastapi import APIRouter
 
 from models.need import Need, NeedCreate
 from services import claude_service, storage_service
+from services.notification_service import create_notification
 
 logger = logging.getLogger(__name__)
 
@@ -70,6 +71,24 @@ async def create_need(payload: NeedCreate) -> Dict[str, Any]:
         )
         storage_service.upsert("needs", need.model_dump(mode="json"))
         logger.info("Need created: %s (%s)", need.id, need.title)
+
+        # Notify all PMEs + investors of new need
+        create_notification(
+            recipient_type="all_pmes",
+            recipient_id=None,
+            title="🆕 Nouveau besoin publié",
+            message=f"{need.title} — {need.published_by}",
+            notif_type="new_need",
+            link=f"/needs/{need.id}",
+        )
+        create_notification(
+            recipient_type="investisseur",
+            recipient_id=None,
+            title="🆕 Nouveau besoin au port",
+            message=f"{need.title} — opportunité d'investissement potentielle",
+            notif_type="new_need",
+            link=f"/needs/{need.id}",
+        )
         return _ok(need.model_dump(mode="json"))
     except Exception as exc:
         logger.error("Failed to create Need: %s", exc)

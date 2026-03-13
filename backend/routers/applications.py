@@ -17,6 +17,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from services import scoring_service, storage_service
+from services.notification_service import create_notification
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,18 @@ async def create_application(payload: ApplicationCreate) -> Dict[str, Any]:
             payload.need_id,
             score,
         )
+
+        # Notify PME if application was created by Port (invitation)
+        if payload.message and "Invitation du port" in (payload.message or ""):
+            create_notification(
+                recipient_type="pme",
+                recipient_id=payload.sme_id,
+                title="📬 Invitation du port Nador West Med",
+                message=f"Le port vous invite à postuler : {need.get('title', '')}",
+                notif_type="port_invitation",
+                link=f"/needs/{payload.need_id}",
+            )
+
         return _ok(application)
     except Exception as exc:
         logger.error("create_application failed: %s", exc)
@@ -182,6 +195,14 @@ def accept_application(application_id: str) -> Dict[str, Any]:
         storage_service.upsert("needs", need)
 
     logger.info("Application '%s' accepted — need '%s' marked as matched.", application_id, application.get("need_id"))
+    create_notification(
+        recipient_type="pme",
+        recipient_id=application.get("sme_id"),
+        title="✅ Candidature acceptée !",
+        message=f"Le port Nador West Med a accepté votre candidature pour : {application.get('need_title', '')}",
+        notif_type="application_accepted",
+        link=f"/needs/{application.get('need_id')}",
+    )
     return _ok(application)
 
 
@@ -204,4 +225,12 @@ def reject_application(application_id: str) -> Dict[str, Any]:
     application["decided_by"] = "port_user"
     storage_service.upsert("applications", application)
     logger.info("Application '%s' rejected.", application_id)
+    create_notification(
+        recipient_type="pme",
+        recipient_id=application.get("sme_id"),
+        title="❌ Candidature non retenue",
+        message=f"Votre candidature pour « {application.get('need_title', '')} » n'a pas été retenue.",
+        notif_type="application_rejected",
+        link=f"/needs/{application.get('need_id')}",
+    )
     return _ok(application)

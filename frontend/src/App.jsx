@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import Navbar from "./components/Navbar.jsx"
 import PremiumToggle from "./components/PremiumToggle.jsx"
+import ChatBot from "./components/ChatBot.jsx"
 import RouteGuard from "./components/RouteGuard.jsx"
 import RoleSelect from "./pages/RoleSelect.jsx"
 import Home from "./pages/Home.jsx"
@@ -34,6 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
+      <ChatBot />
       <Routes>
         <Route path="/" element={<RoleSelect />} />
         <Route path="/role-select" element={<RoleSelect />} />

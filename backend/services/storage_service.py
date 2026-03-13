@@ -24,6 +24,7 @@ RUNTIME_FILES: Dict[str, Path] = {
     "matches": DATA_DIR / "matches.json",
     "gaps": DATA_DIR / "gaps.json",
     "applications": DATA_DIR / "applications.json",
+    "notifications": DATA_DIR / "notifications.json",
 }
 
 SEED_FILES: Dict[str, Path] = {
@@ -156,6 +157,14 @@ def delete_by_id(collection: str, record_id: str) -> bool:
         return False
     path = RUNTIME_FILES[collection]
     return _write_json_file(path, filtered)
+
+
+def save_all(collection: str, records: List[Dict[str, Any]]) -> bool:
+    """Alias for replace_all — overwrite the entire collection."""
+    path = RUNTIME_FILES.get(collection)
+    if path is None:
+        return False
+    return _write_json_file(path, records)
 
 
 def replace_all(collection: str, records: List[Dict[str, Any]]) -> bool:

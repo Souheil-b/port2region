@@ -29,4 +29,15 @@ export const applicationsApi = {
   listMy: (sme_id) => api.get(`/api/applications/my/${sme_id}`),
   accept: (id) => api.post(`/api/applications/${id}/accept`),
   reject: (id) => api.post(`/api/applications/${id}/reject`),
+}
+
+export const notificationsApi = {
+  forPme: (sme_id) => api.get(`/api/notifications/pme/${sme_id}`),
+  forInvestisseur: () => api.get("/api/notifications/investisseur"),
+  markRead: (id) => api.post(`/api/notifications/mark-read/${id}`),
+  markAllRead: (body) => api.post("/api/notifications/mark-all-read", body),
+}
+
+export const chatApi = {
+  send: (message, role) => api.post("/api/chat", { message, role }),
 };
