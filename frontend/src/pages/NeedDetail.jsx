@@ -431,42 +431,51 @@ export default function NeedDetail() {
               <div className="space-y-3">
                 {visibleApps.map((app) => (
                   <div key={app.id} className="card p-4">
+                    {/* Header: name + status */}
                     <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        {role === "port" && (
+                      <div className="flex-1 min-w-0">
+                        {role === "port" ? (
                           <p className="text-sm font-bold text-slate-900">{app.sme_name}</p>
+                        ) : (
+                          <p className="text-sm font-semibold text-slate-700">Ma candidature</p>
                         )}
-                        {app.message && (
-                          <p className="text-xs text-muted mt-1 italic">&quot;{app.message}&quot;</p>
-                        )}
+                        <p className="text-xs text-muted mt-0.5">
+                          {new Date(app.applied_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}
+                        </p>
                       </div>
                       <span className={`badge border text-[11px] flex-shrink-0 ${APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.pending}`}>
                         {APP_STATUS_LABELS[app.status] || app.status}
                       </span>
                     </div>
-                    <ScoreBar score={app.score} />
-                    <div className="flex items-center justify-between mt-3">
-                      <p className="text-xs text-muted">
-                        {new Date(app.applied_at).toLocaleDateString("fr-FR")}
-                      </p>
-                      {/* Accept/Refuse — Port only */}
-                      {role === "port" && app.status === "pending" && (
-                        <div className="flex gap-2">
-                          <button
-                            className="flex items-center gap-1 text-xs font-semibold text-success bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors"
-                            onClick={() => handleAccept(app.id)}
-                          >
-                            <CheckCircle2 size={12} /> Accepter
-                          </button>
-                          <button
-                            className="flex items-center gap-1 text-xs font-semibold text-danger bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
-                            onClick={() => handleReject(app.id)}
-                          >
-                            <XCircle size={12} /> Refuser
-                          </button>
-                        </div>
-                      )}
-                    </div>
+
+                    {/* Score */}
+                    <ScoreBar score={app.score ?? 0} />
+
+                    {/* Message — prominent block when present */}
+                    {app.message && (
+                      <div className="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                        <p className="text-[10px] font-bold text-muted uppercase tracking-wide mb-1">Message</p>
+                        <p className="text-sm text-slate-700 italic">&quot;{app.message}&quot;</p>
+                      </div>
+                    )}
+
+                    {/* Accept/Refuse — Port only */}
+                    {role === "port" && app.status === "pending" && (
+                      <div className="flex justify-end gap-2 mt-3 pt-3 border-t border-gray-100">
+                        <button
+                          className="flex items-center gap-1 text-xs font-semibold text-success bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors"
+                          onClick={() => handleAccept(app.id)}
+                        >
+                          <CheckCircle2 size={12} /> Accepter
+                        </button>
+                        <button
+                          className="flex items-center gap-1 text-xs font-semibold text-danger bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+                          onClick={() => handleReject(app.id)}
+                        >
+                          <XCircle size={12} /> Refuser
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
