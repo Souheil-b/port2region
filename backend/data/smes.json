@@ -347,5 +347,17 @@
     "reputation_score": 0.0,
     "missions_count": 0,
     "created_at": "2026-03-13T02:23:45.794749"
+  },
+  {
+    "id": "b2a48ba0-61fd-48fd-918a-778995f202b3",
+    "name": "TECHNO FOOD BERKANE",
+    "city": "Berkane",
+    "sector": "agroalim",
+    "raw_description": "Traiteur industriel spécialisé en restauration collective, capacité 300 repas/jour, cuisine équipée aux normes ONSSA, livraison sur chantiers et sites industriels. Personnel formé HACCP, véhicule frigorifique dédié.",
+    "tags": [],
+    "capacity_summary": "",
+    "reputation_score": 0.0,
+    "missions_count": 0,
+    "created_at": "2026-03-13T02:26:30.460680"
   }
 ]

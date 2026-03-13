@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "dd5fbe4e-4baf-4f3e-b3c4-3d14d3476af7",
+    "sme_id": "4137b2e8-dcd4-4300-a109-343cff5bcc27",
+    "sme_name": "TECHNO FOOD BERKANE",
+    "need_id": "need-001",
+    "need_title": "Transport de conteneurs — zone franche Nador West Med — 3 camions minimum",
+    "message": "",
+    "status": "pending",
+    "score": 16,
+    "applied_at": "2026-03-13T02:24:04.803435",
+    "decided_at": null,
+    "decided_by": ""
+  }
+]

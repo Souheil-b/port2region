@@ -3,14 +3,14 @@ import { useParams, useNavigate } from "react-router-dom"
 import PropTypes from "prop-types"
 import {
   ChevronLeft, FileText, MapPin, Clock, Loader2, Send,
-  Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp,
+  Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp, Lock,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { needsApi, applicationsApi, matchingApi, smeApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
 import ScoreCard from "../components/ScoreCard"
 import ScoreBreakdown from "../components/ScoreBreakdown"
-import { usePremium } from "../components/PremiumToggle"
+import PremiumToggle, { usePremium } from "../components/PremiumToggle"
 
 const STATUS_STYLES = {
   open: "bg-blue-50 text-blue-700 border-blue-200",
@@ -257,15 +257,19 @@ export default function NeedDetail() {
             </div>
           )}
 
-          {/* PME: Postuler block */}
+          {/* PME: Postuler block — PREMIUM only */}
           {role === "pme" && currentPme && need.status === "open" && (
-            <div className="card p-5 border-brand/30 border-2">
+            <div className={`card p-5 border-2 ${isPremium ? "border-brand/30" : "border-amber-200"}`}>
               <div className="flex items-center justify-between mb-3">
                 <div>
                   <p className="text-sm font-bold text-slate-900">Postuler à ce besoin</p>
                   <p className="text-xs text-muted mt-0.5">En tant que <strong>{currentPme.name}</strong></p>
                 </div>
-                {applied ? (
+                {!isPremium ? (
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg">
+                    <Lock size={12} /> Premium requis
+                  </span>
+                ) : applied ? (
                   <span className="flex items-center gap-1 text-xs font-bold text-success bg-green-50 border border-green-200 px-3 py-1.5 rounded-lg">
                     <CheckCircle2 size={13} /> Candidature envoyée
                   </span>
@@ -278,7 +282,13 @@ export default function NeedDetail() {
                   </button>
                 )}
               </div>
-              {applyOpen && !applied && (
+              {!isPremium && (
+                <div className="pt-3 border-t border-amber-100 flex items-center justify-between">
+                  <p className="text-xs text-amber-700">Passez en Premium pour postuler aux besoins du port.</p>
+                  <PremiumToggle inline />
+                </div>
+              )}
+              {isPremium && applyOpen && !applied && (
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault()
