@@ -1,9 +1,10 @@
 """Chatbot endpoint — contextual assistant for PORT2REGION IA."""
 import logging
+import os
 from typing import Any, Dict
 from fastapi import APIRouter
 from pydantic import BaseModel
-from services import claude_service
+import anthropic
 
 router = APIRouter(tags=["chat"])
 logger = logging.getLogger(__name__)
@@ -52,8 +53,10 @@ async def chat(body: ChatMessage) -> Dict[str, Any]:
 
         full_message = f"{user_context}\n\n{body.message}".strip() if user_context else body.message
 
-        import anthropic
-        client = anthropic.AsyncAnthropic(api_key=claude_service.api_key)
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            return _err("Clé API manquante.")
+        client = anthropic.AsyncAnthropic(api_key=api_key)
         response = await client.messages.create(
             model="claude-haiku-4-5",
             max_tokens=512,
