@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { Toaster } from "react-hot-toast"
 import Navbar from "./components/Navbar.jsx"
-import PremiumToggle from "./components/PremiumToggle.jsx"
 import ChatBot from "./components/ChatBot.jsx"
 import RouteGuard from "./components/RouteGuard.jsx"
 import RoleSelect from "./pages/RoleSelect.jsx"
@@ -24,7 +23,7 @@ function Layout({ children }) {
     <div className="min-h-screen" style={{ backgroundColor: "#f8fafc" }}>
       <Navbar />
       <main>{children}</main>
-      <PremiumToggle />
+      {/* PremiumToggle moved to Navbar */}
     </div>
   )
 }

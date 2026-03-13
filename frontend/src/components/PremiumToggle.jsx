@@ -34,10 +34,11 @@ export default function PremiumToggle({ inline = false }) {
     if (next) {
       toast.success("Mode Premium activé — Toutes les fonctionnalités débloquées", { icon: "⭐" })
     } else {
-      toast("Mode Gratuit", { icon: "🔓" })
+      toast("Mode Freemium", { icon: "🔓" })
     }
   }
 
+  // inline = compact button used inside forms/cards
   if (inline) {
     return (
       <button
@@ -54,21 +55,24 @@ export default function PremiumToggle({ inline = false }) {
     )
   }
 
+  // navbar = compact toggle switch shown in top bar
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <button
-        onClick={toggle}
-        className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold shadow-lg transition-all ${
-          isPremium
-            ? "bg-gradient-to-r from-amber-400 to-amber-600 text-white"
-            : "bg-white text-gray-700 border border-gray-200 hover:border-amber-400 hover:text-amber-700"
-        }`}
-        title={isPremium ? "Mode Premium actif — cliquer pour désactiver" : "Activer le mode Premium"}
-      >
-        <span className="text-base">{isPremium ? "⭐" : "🔓"}</span>
-        <span>{isPremium ? "Premium" : "Gratuit"}</span>
-      </button>
-    </div>
+    <button
+      onClick={toggle}
+      title={isPremium ? "Premium actif — cliquer pour passer Freemium" : "Passer en Premium"}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
+        isPremium
+          ? "bg-amber-400 border-amber-300 text-white shadow-sm"
+          : "bg-white/10 border-white/20 text-white/80 hover:bg-white/20"
+      }`}
+    >
+      <span className="text-sm leading-none">{isPremium ? "⭐" : "🔓"}</span>
+      <span>{isPremium ? "Premium" : "Freemium"}</span>
+      {/* Toggle track */}
+      <span className={`ml-0.5 w-7 h-3.5 rounded-full flex items-center transition-colors relative ${isPremium ? "bg-white/30" : "bg-white/20"}`}>
+        <span className={`absolute w-2.5 h-2.5 rounded-full bg-white shadow transition-all ${isPremium ? "left-[14px]" : "left-[2px]"}`} />
+      </span>
+    </button>
   )
 }
 
