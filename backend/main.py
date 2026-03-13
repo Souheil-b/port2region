@@ -65,11 +65,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow local Vite dev server and common dev ports
-ALLOWED_ORIGINS = os.environ.get(
-    "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173",
-).split(",")
+# CORS — allow local Vite dev server, Vercel and Render deployments
+_default_origins = (
+    "http://localhost:5173,"
+    "http://localhost:3000,"
+    "http://127.0.0.1:5173,"
+    "https://port2region.vercel.app"
+)
+ALLOWED_ORIGINS = os.environ.get("CORS_ORIGINS", _default_origins).split(",")
 
 app.add_middleware(
     CORSMiddleware,
