@@ -24,5 +24,44 @@
     },
     "justification": "Sector: 2/3 need tags matched (Jaccard 0.40) → tags: [logistique_portuaire, transport_conteneurs] | Location: City 'Nador' matches zone 'nador' exactly → 20 pts | Reputation: reputation 4.0/5.0 → 12 pts | Capacity: declared 8 >= required 3 → full 25 pts | Total: 73/100",
     "matched_at": "2026-03-13T02:29:30.550738"
+  },
+  {
+    "sme_id": "sme-002",
+    "need_id": "need-002",
+    "total_score": 71,
+    "score_breakdown": {
+      "sector_score": 20,
+      "capacity_score": 25,
+      "location_score": 16,
+      "reputation_score": 10
+    },
+    "justification": "Sector: 3/5 need tags matched (Jaccard 0.50) → tags: [electromecanique, equipements_portuaires, maintenance_industrielle] | Location: City 'Berkane' matches zone 'berkane' exactly → 16 pts | Reputation: reputation 3.5/5.0 → 10 pts | Capacity: declared 12 >= required 8 → full 25 pts | Total: 71/100",
+    "matched_at": "2026-03-13T02:35:50.270704"
+  },
+  {
+    "sme_id": "sme-008",
+    "need_id": "need-003",
+    "total_score": 83,
+    "score_breakdown": {
+      "sector_score": 30,
+      "capacity_score": 25,
+      "location_score": 20,
+      "reputation_score": 8
+    },
+    "justification": "Sector: 3/3 need tags matched (Jaccard 0.75) → tags: [halal_certifie, restauration_collective, traiteur_industriel] | Location: City 'Nador' matches zone 'nador' exactly → 20 pts | Reputation: reputation 2.5/5.0 → 8 pts | Capacity: declared 500 >= required 200 → full 25 pts | Total: 83/100",
+    "matched_at": "2026-03-13T02:35:50.282130"
+  },
+  {
+    "sme_id": "sme-006",
+    "need_id": "need-003",
+    "total_score": 60,
+    "score_breakdown": {
+      "sector_score": 7,
+      "capacity_score": 25,
+      "location_score": 16,
+      "reputation_score": 12
+    },
+    "justification": "Sector: 1/3 need tags matched (Jaccard 0.17) → tags: [halal_certifie] | Location: City 'Berkane' in Oriental region → 16 pts (zone: nador) | Reputation: reputation 4.0/5.0 → 12 pts | Capacity: declared 22000 >= required 200 → full 25 pts | Total: 60/100",
+    "matched_at": "2026-03-13T02:35:50.282089"
   }
 ]

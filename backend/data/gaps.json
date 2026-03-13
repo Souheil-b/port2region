@@ -1,1 +1,22 @@
-[]
+[
+  {
+    "id": "fa507ed6-7e94-4508-a4f7-c5fe09f2f0a7",
+    "need_id": "need-004",
+    "title": "Opportunité : Ingénierie navale et services de pilotage portuaire — Terminal en eau profonde Nador West Med",
+    "sector": "non_classifié",
+    "description": "Aucun prestataire local qualifié n'existe pour ce besoin. Opportunité d'investissement identifiée dans la région Orientale.",
+    "estimated_potential": "Potentiel de marché à évaluer selon les volumes du port Nador West Med.",
+    "target_region": "Nador, Région Orientale, Maroc",
+    "generated_at": "2026-03-13T02:35:50.299406"
+  },
+  {
+    "id": "34bfb917-0675-4ae7-b955-78ae9e128fd9",
+    "need_id": "need-005",
+    "title": "Opportunité : Services de consignation maritime et avitaillement des navires — Nador West Med",
+    "sector": "non_classifié",
+    "description": "Aucun prestataire local qualifié n'existe pour ce besoin. Opportunité d'investissement identifiée dans la région Orientale.",
+    "estimated_potential": "Potentiel de marché à évaluer selon les volumes du port Nador West Med.",
+    "target_region": "Nador, Région Orientale, Maroc",
+    "generated_at": "2026-03-13T02:35:50.587673"
+  }
+]

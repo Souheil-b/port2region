@@ -84,6 +84,10 @@ export default function NeedDetail() {
   const [applied, setApplied] = useState(false)
   const [applyOpen, setApplyOpen] = useState(false)
 
+  // PME compatibility analysis
+  const [compatScore, setCompatScore] = useState(null)  // { score, breakdown, qualified }
+  const [compatLoading, setCompatLoading] = useState(false)
+
   const loadData = useCallback(async () => {
     try {
       const [needRes, appRes, smeRes] = await Promise.all([
@@ -254,6 +258,82 @@ export default function NeedDetail() {
               <div className="flex flex-wrap gap-1.5">
                 {need.tags.map((t) => <TagBadge key={t} tag={t} sector="transport" />)}
               </div>
+            </div>
+          )}
+
+          {/* PME: Analyser ma compatibilité — PREMIUM */}
+          {role === "pme" && currentPme && (
+            <div className={`card p-5 border-2 ${isPremium ? "border-teal/40" : "border-amber-200"}`}>
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <Zap size={15} className="text-teal" />
+                    Analyser ma compatibilité
+                    <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full">PREMIUM</span>
+                  </p>
+                  <p className="text-xs text-muted mt-0.5">En tant que <strong>{currentPme.name}</strong></p>
+                </div>
+                {isPremium && !compatScore && (
+                  <button
+                    className="btn-primary text-xs py-1.5 px-3 flex-shrink-0"
+                    disabled={compatLoading}
+                    onClick={async () => {
+                      setCompatLoading(true)
+                      try {
+                        const res = await matchingApi.runForNeed(need_id)
+                        const allResults = res.data.data?.all_results || []
+                        const mine = allResults.find(r => r.sme_id === currentPme.id)
+                        if (mine) {
+                          setCompatScore({
+                            score: mine.total_score,
+                            breakdown: mine.score_breakdown,
+                            qualified: mine.total_score >= (need.min_score ?? 60),
+                          })
+                        } else {
+                          setCompatScore({ score: 0, breakdown: {}, qualified: false })
+                          toast("Votre PME n'a pas été incluse dans l'analyse.", { icon: "ℹ️" })
+                        }
+                      } catch {
+                        toast.error("Erreur lors de l'analyse")
+                      } finally {
+                        setCompatLoading(false)
+                      }
+                    }}
+                  >
+                    {compatLoading
+                      ? <><Loader2 size={13} className="animate-spin" /> Analyse…</>
+                      : <><Zap size={13} /> Lancer l&apos;analyse</>}
+                  </button>
+                )}
+              </div>
+
+              {!isPremium && (
+                <div className="pt-3 border-t border-amber-100 flex items-center justify-between">
+                  <p className="text-xs text-amber-700">Activez Premium pour analyser votre compatibilité avec ce besoin.</p>
+                  <PremiumToggle inline />
+                </div>
+              )}
+
+              {isPremium && compatScore && (
+                <div className="pt-3 border-t border-gray-100">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
+                      compatScore.qualified
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : "bg-red-50 text-red-600 border-red-200"
+                    }`}>
+                      {compatScore.qualified ? "✓ Qualifié" : "✗ Non qualifié"} — {compatScore.score}/100
+                    </span>
+                    <button
+                      className="text-xs text-muted hover:text-brand"
+                      onClick={() => setCompatScore(null)}
+                    >
+                      ↺ Relancer
+                    </button>
+                  </div>
+                  <ScoreBreakdown breakdown={compatScore.breakdown} />
+                </div>
+              )}
             </div>
           )}
 

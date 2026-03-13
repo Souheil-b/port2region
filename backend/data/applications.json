@@ -24,5 +24,18 @@
     "applied_at": "2026-03-13T02:26:47.836125",
     "decided_at": null,
     "decided_by": ""
+  },
+  {
+    "id": "08ea41b3-6005-4fb0-ac93-c4815473ae10",
+    "sme_id": "sme-003",
+    "sme_name": "NADOR LOGISTICS SARL",
+    "need_id": "need-001",
+    "need_title": "Transport de conteneurs — zone franche Nador West Med — 3 camions minimum",
+    "message": "Invitation du port Nador West Med — score IA : 85/100",
+    "status": "accepted",
+    "score": 85,
+    "applied_at": "2026-03-13T02:35:05.126819",
+    "decided_at": "2026-03-13T02:35:59.361064",
+    "decided_by": "port_user"
   }
 ]
