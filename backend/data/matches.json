@@ -1,1 +1,28 @@
-[]
+[
+  {
+    "sme_id": "sme-003",
+    "need_id": "need-001",
+    "total_score": 85,
+    "score_breakdown": {
+      "sector_score": 30,
+      "capacity_score": 25,
+      "location_score": 20,
+      "reputation_score": 10
+    },
+    "justification": "Sector: 3/3 need tags matched (Jaccard 0.75) → tags: [logistique_portuaire, transport_conteneurs, zone_franche] | Location: City 'Nador' matches zone 'nador' exactly → 20 pts | Reputation: reputation 3.5/5.0 → 10 pts | Capacity: declared 6 >= required 3 → full 25 pts | Total: 85/100",
+    "matched_at": "2026-03-13T02:29:30.551107"
+  },
+  {
+    "sme_id": "sme-001",
+    "need_id": "need-001",
+    "total_score": 73,
+    "score_breakdown": {
+      "sector_score": 16,
+      "capacity_score": 25,
+      "location_score": 20,
+      "reputation_score": 12
+    },
+    "justification": "Sector: 2/3 need tags matched (Jaccard 0.40) → tags: [logistique_portuaire, transport_conteneurs] | Location: City 'Nador' matches zone 'nador' exactly → 20 pts | Reputation: reputation 4.0/5.0 → 12 pts | Capacity: declared 8 >= required 3 → full 25 pts | Total: 73/100",
+    "matched_at": "2026-03-13T02:29:30.550738"
+  }
+]
