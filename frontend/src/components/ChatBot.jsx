@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { MessageCircle, X, Send, Loader2, Bot } from "lucide-react"
+import ReactMarkdown from "react-markdown"
 import { chatApi } from "../api/client"
 
 const WELCOME = "Bonjour ! Je suis l'assistant PORT2REGION. Comment puis-je vous aider ?"
@@ -83,7 +84,28 @@ export default function ChatBot() {
                     ? "bg-brand text-white rounded-br-sm"
                     : "bg-white text-slate-700 border border-gray-200 rounded-bl-sm shadow-sm"
                 }`}>
-                  {m.text}
+                  {m.role === "assistant" ? (
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => <p className="mb-1.5 last:mb-0">{children}</p>,
+                        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                        em: ({ children }) => <em className="italic">{children}</em>,
+                        h1: ({ children }) => <p className="font-bold text-sm mb-1">{children}</p>,
+                        h2: ({ children }) => <p className="font-bold mb-1 mt-2">{children}</p>,
+                        h3: ({ children }) => <p className="font-semibold mb-1 mt-1.5">{children}</p>,
+                        ul: ({ children }) => <ul className="list-disc pl-4 mb-1.5 space-y-0.5">{children}</ul>,
+                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-1.5 space-y-0.5">{children}</ol>,
+                        li: ({ children }) => <li>{children}</li>,
+                        table: ({ children }) => <div className="overflow-x-auto my-2"><table className="text-[10px] border-collapse w-full">{children}</table></div>,
+                        th: ({ children }) => <th className="border border-gray-200 bg-gray-50 px-2 py-1 text-left font-semibold">{children}</th>,
+                        td: ({ children }) => <td className="border border-gray-200 px-2 py-1">{children}</td>,
+                        code: ({ children }) => <code className="bg-gray-100 rounded px-1 font-mono">{children}</code>,
+                        hr: () => <hr className="my-2 border-gray-200" />,
+                      }}
+                    >
+                      {m.text}
+                    </ReactMarkdown>
+                  ) : m.text}
                 </div>
               </div>
             ))}
