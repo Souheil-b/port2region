@@ -277,16 +277,23 @@ export default function SMEDashboard() {
         ) : (
           <div className="space-y-2">
             {myApplications.map((app) => (
-              <div key={app.id} className="card p-4 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-semibold text-slate-900">{app.need_title}</p>
+              <div
+                key={app.id}
+                className="card p-4 flex items-center justify-between gap-4 cursor-pointer hover:border-brand hover:shadow-sm transition-all group"
+                onClick={() => navigate(`/needs/${app.need_id}`)}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-slate-900 group-hover:text-brand transition-colors truncate">{app.need_title}</p>
                   <p className="text-xs text-muted mt-0.5">
                     {new Date(app.applied_at).toLocaleDateString("fr-FR")} · Score : <strong>{app.score}/100</strong>
                   </p>
                 </div>
-                <span className={`badge border text-[11px] flex-shrink-0 ${APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.pending}`}>
-                  {APP_STATUS_LABELS[app.status] || app.status}
-                </span>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className={`badge border text-[11px] ${APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.pending}`}>
+                    {APP_STATUS_LABELS[app.status] || app.status}
+                  </span>
+                  <ChevronRight size={14} className="text-muted group-hover:text-brand transition-colors" />
+                </div>
               </div>
             ))}
           </div>
