@@ -41,17 +41,28 @@ function ScoreBar({ score }) {
 
 ScoreBar.propTypes = { score: PropTypes.number.isRequired }
 
-const TABS = [
-  { key: "details", label: "Détails" },
-  { key: "applications", label: "Candidatures" },
-  { key: "matching", label: "Matching IA" },
-]
+// Tabs by role — investisseur sees needs read-only, no matching
+const TABS_BY_ROLE = {
+  port: [
+    { key: "details", label: "Détails" },
+    { key: "applications", label: "Candidatures" },
+    { key: "matching", label: "Matching IA" },
+  ],
+  pme: [
+    { key: "details", label: "Détails" },
+    { key: "applications", label: "Mes Candidatures" },
+  ],
+  investisseur: [
+    { key: "details", label: "Détails" },
+  ],
+}
 
 export default function NeedDetail() {
   const { need_id } = useParams()
   const navigate = useNavigate()
-  const isPremium = usePremium() // kept for PME premium matching in other views
+  const isPremium = usePremium() // for PME premium section
   const role = localStorage.getItem("port2region_role")
+  const TABS = TABS_BY_ROLE[role] || TABS_BY_ROLE.pme
   const backLabel =
     role === "port" ? "← Mes Besoins" :
     role === "investisseur" ? "← Besoins Publiés" :
