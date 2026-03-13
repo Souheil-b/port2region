@@ -2,7 +2,7 @@
 
 import uuid
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -17,6 +17,8 @@ class NeedCreate(BaseModel):
         deadline_days: Number of days until the need expires.
         min_score: Minimum matching score threshold (default 60).
         published_by: Organisation or contact publishing the need.
+        preset_tags: Optional pre-computed tags that bypass Claude extraction (demo use).
+        preset_required_capacity: Optional capacity string that bypasses Claude (demo use).
     """
 
     title: str
@@ -25,6 +27,8 @@ class NeedCreate(BaseModel):
     deadline_days: int
     min_score: int = 60
     published_by: str
+    preset_tags: Optional[List[str]] = None
+    preset_required_capacity: Optional[str] = None
 
 
 class Need(BaseModel):

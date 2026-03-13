@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import applications, chat, matches, needs, smes, notifications
+from routers import applications, chat, demo, matches, needs, smes, notifications
 from services import storage_service
 
 # Load environment variables from .env before anything else
@@ -84,6 +84,7 @@ app.include_router(matches.router)
 app.include_router(applications.router)
 app.include_router(notifications.router)
 app.include_router(chat.router)
+app.include_router(demo.router)
 
 
 # ---------------------------------------------------------------------------

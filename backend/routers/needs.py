@@ -55,10 +55,16 @@ async def create_need(payload: NeedCreate) -> Dict[str, Any]:
         Dict[str, Any]: Created Need wrapped in success envelope.
     """
     try:
-        tags, required_capacity = await claude_service.extract_need_tags(
-            title=payload.title,
-            raw_description=payload.raw_description,
-        )
+        if payload.preset_tags is not None:
+            # Bypass Claude — use pre-computed tags (guaranteed demo match)
+            tags = payload.preset_tags
+            required_capacity = payload.preset_required_capacity or ""
+            logger.info("Need '%s' — using preset tags (demo bypass), %d tags.", payload.title, len(tags))
+        else:
+            tags, required_capacity = await claude_service.extract_need_tags(
+                title=payload.title,
+                raw_description=payload.raw_description,
+            )
         need = Need(
             title=payload.title,
             raw_description=payload.raw_description,

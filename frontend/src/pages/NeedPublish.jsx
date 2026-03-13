@@ -1,9 +1,9 @@
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { FileText, Loader2, CheckCircle2, Zap, AlertTriangle, TrendingUp } from "lucide-react"
+import { FileText, Loader2, CheckCircle2, Zap, AlertTriangle, TrendingUp, MoreHorizontal, RotateCcw } from "lucide-react"
 import toast from "react-hot-toast"
 import PropTypes from "prop-types"
-import { needsApi, matchingApi, smeApi } from "../api/client"
+import { needsApi, matchingApi, smeApi, demoApi } from "../api/client"
 import DemoFillButton from "../components/DemoFillButton"
 
 const DEMO_NEEDS = [
@@ -30,6 +30,19 @@ const DEMO_NEEDS = [
     deadline_days: 60,
     min_score: 65,
     published_by: "Zone Logistique Nador West Med",
+  },
+  // ✅ Besoin garanti match — conçu pour matcher TRANSORIENT SARL + NADOR LOGISTICS
+  // preset_tags bypass Claude extraction → match garanti même si Claude échoue
+  {
+    _guaranteed: true,
+    title: "Transport frigorifique — produits de la mer débarqués Nador West Med",
+    raw_description: "Le port Nador West Med recherche un prestataire de transport frigorifique pour acheminer les produits de la mer fraîchement débarqués vers les marchés régionaux et les unités de transformation agroalimentaire. Minimum 3 camions frigorifiques disponibles, chauffeurs expérimentés en procédures portuaires, certification ADR appréciée. Disponibilité 7j/7, démarrage sous 15 jours après signature du contrat.",
+    location_zones: ["nador"],
+    deadline_days: 15,
+    min_score: 60,
+    published_by: "TMSA — Nador West Med",
+    preset_tags: ["transport_frigorifique", "logistique_portuaire", "transport_conteneurs", "camions_porteurs"],
+    preset_required_capacity: "Minimum 3 camions frigorifiques disponibles, disponibilité 7j/7, chauffeurs certifiés procédures portuaires",
   },
 ]
 import TagBadge from "../components/TagBadge"
@@ -62,6 +75,8 @@ const INITIAL_FORM = {
   deadline_days: 30,
   min_score: 60,
   published_by: "",
+  preset_tags: null,
+  preset_required_capacity: null,
 }
 
 function MatchingResults({ need, matches, gap, smes }) {
@@ -131,6 +146,38 @@ export default function NeedPublish() {
   const [matchResults, setMatchResults] = useState([])
   const [matchGap, setMatchGap] = useState(null)
   const [allSmes, setAllSmes] = useState([])
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [resetting, setResetting] = useState(false)
+  const menuRef = useRef(null)
+
+  // Ferme le menu si on clique ailleurs
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
+
+  async function handleReset() {
+    setMenuOpen(false)
+    setResetting(true)
+    try {
+      await demoApi.reset()
+      // Reset local state aussi
+      setStep("form")
+      setForm(INITIAL_FORM)
+      setPublishedNeed(null)
+      setMatchResults([])
+      setMatchGap(null)
+      setAllSmes([])
+      toast.success("Demo réinitialisée — données seed rechargées ✓")
+    } catch {
+      toast.error("Erreur lors du reset de la demo")
+    } finally {
+      setResetting(false)
+    }
+  }
 
   function handleChange(e) {
     const { name, value, type } = e.target
@@ -149,7 +196,12 @@ export default function NeedPublish() {
     let need
     try {
       // Serialize multi-zones to comma-separated string for the API
-      const payload = { ...form, location_zone: form.location_zones.join(", ") }
+      // preset_tags / preset_required_capacity are passed as-is when present (guaranteed demo match)
+      const { location_zones, _guaranteed, ...rest } = form
+      const payload = {
+        ...rest,
+        location_zone: location_zones.join(", "),
+      }
       const res = await needsApi.publish(payload)
       need = res.data.data
       setPublishedNeed(need)
@@ -197,6 +249,31 @@ export default function NeedPublish() {
             <FileText size={18} className="text-brand" />
           </div>
           <h1 className="text-2xl font-bold text-slate-900">Publier un Besoin</h1>
+
+          {/* Bouton ··· discret — reset demo */}
+          <div className="ml-auto relative" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen(v => !v)}
+              className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 hover:text-slate-500 hover:bg-slate-100 transition-colors"
+              title="Options demo"
+            >
+              <MoreHorizontal size={15} />
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 top-8 z-50 w-52 bg-white border border-slate-200 rounded-xl shadow-lg py-1 animate-fade-in">
+                <button
+                  onClick={handleReset}
+                  disabled={resetting}
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-red-600 transition-colors"
+                >
+                  {resetting
+                    ? <Loader2 size={13} className="animate-spin text-slate-400" />
+                    : <RotateCcw size={13} className="text-slate-400" />}
+                  <span>Réinitialiser la demo</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted ml-12">
           Le matching se lance automatiquement après publication.
@@ -211,11 +288,20 @@ export default function NeedPublish() {
             <div className="flex flex-wrap gap-2 p-3 bg-violet-50 border border-violet-100 rounded-lg">
               <span className="text-xs text-violet-600 font-medium w-full mb-1">✏️ Exemples de démo :</span>
               {DEMO_NEEDS.map((demo, i) => (
-                <DemoFillButton
-                  key={i}
-                  label={demo.title.split("—")[0].trim()}
-                  onFill={() => setForm(demo)}
-                />
+                <div key={i} className="relative">
+                  <DemoFillButton
+                    label={demo.title.split("—")[0].trim()}
+                    onFill={() => {
+                      const { _guaranteed, ...fields } = demo
+                      setForm({ ...INITIAL_FORM, ...fields })
+                    }}
+                  />
+                  {demo._guaranteed && (
+                    <span className="absolute -top-1.5 -right-1.5 text-[9px] bg-green-500 text-white font-bold px-1 py-0.5 rounded-full leading-none">
+                      ✓
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
             <div>

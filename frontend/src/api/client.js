@@ -41,3 +41,7 @@ export const notificationsApi = {
 export const chatApi = {
   send: (message, role) => api.post("/api/chat", { message, role }),
 };
+
+export const demoApi = {
+  reset: () => api.post("/api/demo/reset"),
+};

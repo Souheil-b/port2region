@@ -7,6 +7,7 @@ API key is read from the ANTHROPIC_API_KEY environment variable.
 import json
 import logging
 import os
+import re
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Tuple
@@ -18,6 +19,27 @@ from models.match import GapOpportunity
 logger = logging.getLogger(__name__)
 
 MODEL_ID = "claude-haiku-4-5-20251001"
+
+
+def _strip_markdown_fences(text: str) -> str:
+    """Remove markdown code fences that Claude sometimes wraps around JSON.
+
+    Handles patterns like:
+        ```json\\n{...}\\n```
+        ```\\n{...}\\n```
+
+    Args:
+        text (str): Raw text from Claude response.
+
+    Returns:
+        str: Clean text ready for json.loads().
+    """
+    stripped = text.strip()
+    # Remove opening fence (```json or ```)
+    stripped = re.sub(r"^```(?:json)?\s*\n?", "", stripped)
+    # Remove closing fence
+    stripped = re.sub(r"\n?```\s*$", "", stripped)
+    return stripped.strip()
 
 # ---------------------------------------------------------------------------
 # Client initialisation
@@ -88,7 +110,7 @@ async def extract_sme_tags(
             system=SME_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_message}],
         )
-        raw_text = response.content[0].text.strip()
+        raw_text = _strip_markdown_fences(response.content[0].text)
         parsed = json.loads(raw_text)
         tags = [str(t).lower().replace(" ", "_") for t in parsed.get("tags", [])]
         capacity_summary = str(parsed.get("capacity_summary", ""))
@@ -141,7 +163,7 @@ async def extract_need_tags(
             system=NEED_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_message}],
         )
-        raw_text = response.content[0].text.strip()
+        raw_text = _strip_markdown_fences(response.content[0].text)
         parsed = json.loads(raw_text)
         tags = [str(t).lower().replace(" ", "_") for t in parsed.get("tags", [])]
         required_capacity = str(parsed.get("required_capacity", ""))
@@ -211,7 +233,7 @@ async def generate_gap_opportunity(need: Dict[str, Any]) -> GapOpportunity:
             system=GAP_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_message}],
         )
-        raw_text = response.content[0].text.strip()
+        raw_text = _strip_markdown_fences(response.content[0].text)
         parsed = json.loads(raw_text)
         gap = GapOpportunity(
             id=str(uuid.uuid4()),
