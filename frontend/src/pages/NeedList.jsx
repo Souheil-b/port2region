@@ -14,8 +14,11 @@ const STATUS_STYLES = {
   matched: "bg-green-50 text-green-700 border-green-200",
   gap: "bg-red-50 text-red-700 border-red-200",
 }
+// PME sees gaps as "Ouvert" — gap status is Port/Investisseur only
 const STATUS_LABELS = { open: "Ouvert", matched: "Matché", gap: "Gap" }
-const STATUSES = ["Tous", "open", "matched", "gap"]
+const STATUS_LABELS_PME = { open: "Ouvert", matched: "Ouvert", gap: "Ouvert" }
+const STATUSES_PORT = ["Tous", "open", "matched", "gap"]
+const STATUSES_PME  = ["Tous", "open"]
 const STATUS_FILTER_LABELS = { Tous: "Tous", open: "Ouverts", matched: "Matchés", gap: "Gaps" }
 
 function ApplicationsBadge({ count }) {
@@ -68,8 +71,15 @@ export default function NeedList() {
     }).finally(() => setLoading(false))
   }, [])
 
-  const filtered = filter === "Tous" ? needs : needs.filter((n) => n.status === filter)
+  const isPme = role === "pme"
+  // PME: gaps show as open, no "gap" filter
+  const visibleNeeds = isPme
+    ? needs.map(n => n.status === "gap" ? { ...n, status: "open" } : n)
+    : needs
+  const STATUSES = isPme ? STATUSES_PME : STATUSES_PORT
+  const filtered = filter === "Tous" ? visibleNeeds : visibleNeeds.filter((n) => n.status === filter)
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
+  const statusLabels = isPme ? STATUS_LABELS_PME : STATUS_LABELS
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
@@ -132,7 +142,7 @@ export default function NeedList() {
                   <div className="flex items-center flex-wrap gap-2 mb-2">
                     <span className="text-sm font-semibold text-slate-900">{need.title}</span>
                     <span className={`badge border flex-shrink-0 ${STATUS_STYLES[need.status] || STATUS_STYLES.open}`}>
-                      {STATUS_LABELS[need.status] || need.status}
+                      {statusLabels[need.status] || need.status}
                     </span>
                     <ApplicationsBadge count={applicationCounts[need.id]} />
                   </div>

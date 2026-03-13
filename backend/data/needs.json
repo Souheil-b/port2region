@@ -85,5 +85,18 @@
     "published_by": "Nador West Med — Direction Commerciale",
     "published_at": "2025-03-20T09:00:00Z",
     "status": "gap"
+  },
+  {
+    "id": "f3725ab7-a08b-4871-8253-8c4d6da3abb0",
+    "title": "Transport conteneurs zone franche — flotte 3 camions min",
+    "raw_description": "Besoin de transport de conteneurs entre le terminal et la zone franche de Nador West Med. Minimum 3 camions disponibles, permis transport matières dangereuses souhaité. Disponibilité 5j/7, intervention possible le week-end sur demande.",
+    "tags": [],
+    "required_capacity": "",
+    "location_zone": "nador",
+    "deadline_days": 30,
+    "min_score": 60,
+    "published_by": "TMSA — Nador West Med",
+    "published_at": "2026-03-13T02:44:38.643072",
+    "status": "gap"
   }
 ]
