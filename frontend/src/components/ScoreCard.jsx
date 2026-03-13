@@ -38,12 +38,15 @@ export default function ScoreCard({ sme, matchResult, onNotify }) {
               <MapPin size={11} /> {sme.city}
             </div>
           </div>
-          <button
-            onClick={handleNotify}
-            className="flex-shrink-0 p-1.5 rounded-lg text-muted hover:text-brand hover:bg-blue-50 transition-colors"
-          >
-            <Bell size={14} />
-          </button>
+          {onNotify && (
+            <button
+              onClick={handleNotify}
+              className="flex-shrink-0 p-1.5 rounded-lg text-muted hover:text-brand hover:bg-blue-50 transition-colors"
+              title="Notifier cette PME"
+            >
+              <Bell size={14} />
+            </button>
+          )}
         </div>
         <ScoreBar score={matchResult.total_score} />
         {sme.tags?.length > 0 && (

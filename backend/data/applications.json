@@ -37,5 +37,31 @@
     "applied_at": "2026-03-13T02:35:05.126819",
     "decided_at": "2026-03-13T02:35:59.361064",
     "decided_by": "port_user"
+  },
+  {
+    "id": "75769169-4c81-44be-939d-e2781f29818b",
+    "sme_id": "sme-001",
+    "sme_name": "TRANSORIENT SARL",
+    "need_id": "need-002",
+    "need_title": "Maintenance industrielle des équipements de manutention portuaire — Zone industrielle Berkane",
+    "message": "",
+    "status": "pending",
+    "score": 57,
+    "applied_at": "2026-03-13T02:53:06.656759",
+    "decided_at": null,
+    "decided_by": ""
+  },
+  {
+    "id": "92493100-b4d2-4a89-a93d-d9d4a16d1ff8",
+    "sme_id": "sme-001",
+    "sme_name": "TRANSORIENT SARL",
+    "need_id": "need-003",
+    "need_title": "Restauration collective industrielle — 200 repas halal/jour pour les travailleurs du port Nador West Med",
+    "message": "test",
+    "status": "pending",
+    "score": 33,
+    "applied_at": "2026-03-13T02:53:55.024663",
+    "decided_at": null,
+    "decided_by": ""
   }
 ]
