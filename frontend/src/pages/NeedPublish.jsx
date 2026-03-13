@@ -10,37 +10,55 @@ const DEMO_NEEDS = [
   {
     title: "Transport conteneurs zone franche — flotte 3 camions min",
     raw_description: "Besoin de transport de conteneurs entre le terminal et la zone franche de Nador West Med. Minimum 3 camions disponibles, permis transport matières dangereuses souhaité. Disponibilité 5j/7, intervention possible le week-end sur demande.",
-    location_zone: "nador",
+    location_zones: ["nador"],
     deadline_days: 30,
     min_score: 60,
-    published_by: "Nador West Med — Direction Logistique",
+    published_by: "TMSA — Nador West Med",
   },
   {
     title: "Restauration collective chantier — 200 repas/jour",
     raw_description: "Prestataire de restauration collective pour les équipes de construction et d'exploitation. Capacité 200 repas/jour, midi et soir, 6j/7. Cuisine équipée normes ONSSA, véhicule frigorifique, 5 agents minimum. Expérience restauration industrielle exigée.",
-    location_zone: "nador",
+    location_zones: ["nador", "berkane"],
     deadline_days: 45,
     min_score: 55,
-    published_by: "Nador West Med — Direction RH",
+    published_by: "ANP — Agence Nationale des Ports",
   },
   {
     title: "Maintenance préventive équipements portuaires",
     raw_description: "Contrat de maintenance préventive et curative pour grues portuaires, convoyeurs et équipements électromécaniques. Intervention H24, techniciens certifiés, stock de pièces de rechange. Expérience en milieu industriel portuaire requise.",
-    location_zone: "nador",
+    location_zones: ["nador"],
     deadline_days: 60,
     min_score: 65,
-    published_by: "Nador West Med — Direction Technique",
+    published_by: "Zone Logistique Nador West Med",
   },
 ]
 import TagBadge from "../components/TagBadge"
 import ScoreCard from "../components/ScoreCard"
 
-const ZONES = ["nador", "oujda", "berkane", "taourirt", "oriental"]
+const ZONES = [
+  { value: "nador", label: "Nador / Nador West Med" },
+  { value: "oujda", label: "Oujda" },
+  { value: "berkane", label: "Berkane" },
+  { value: "taourirt", label: "Taourirt" },
+  { value: "oriental", label: "Toute la région Orientale" },
+]
+
+const DONNEURS_ORDRE = [
+  "TMSA — Nador West Med",
+  "ANP — Agence Nationale des Ports",
+  "Zone Franche d'Exportation Nador",
+  "Zone Logistique Nador West Med",
+  "Direction Régionale des Travaux Publics",
+  "ONCF — Logistique",
+  "Marsa Maroc",
+  "Ministère de l'Équipement et de l'Eau",
+  "Direction Régionale du Commerce",
+]
 
 const INITIAL_FORM = {
   title: "",
   raw_description: "",
-  location_zone: "",
+  location_zones: [],   // multi-select
   deadline_days: 30,
   min_score: 60,
   published_by: "",
@@ -121,8 +139,8 @@ export default function NeedPublish() {
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (!form.title || !form.raw_description || !form.location_zone || !form.published_by) {
-      toast.error("Veuillez remplir tous les champs obligatoires.")
+    if (!form.title || !form.raw_description || form.location_zones.length === 0 || !form.published_by) {
+      toast.error("Veuillez remplir tous les champs obligatoires (titre, description, zones, donneur d'ordre).")
       return
     }
 
@@ -130,7 +148,9 @@ export default function NeedPublish() {
     setStep("publishing")
     let need
     try {
-      const res = await needsApi.publish(form)
+      // Serialize multi-zones to comma-separated string for the API
+      const payload = { ...form, location_zone: form.location_zones.join(", ") }
+      const res = await needsApi.publish(payload)
       need = res.data.data
       setPublishedNeed(need)
       setForm(INITIAL_FORM)
@@ -205,19 +225,54 @@ export default function NeedPublish() {
             </div>
 
             <div>
-              <label className="label">Publié par</label>
-              <input className="input" name="published_by" value={form.published_by} onChange={handleChange}
-                placeholder="Nador West Med — Direction Logistique" />
+              <label className="label">Donneur d&apos;ordre</label>
+              <select className="input" name="published_by" value={form.published_by} onChange={handleChange}>
+                <option value="">Sélectionner le donneur d&apos;ordre…</option>
+                {DONNEURS_ORDRE.map(d => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
             </div>
 
             <div>
-              <label className="label">Zone géographique</label>
-              <select className="input" name="location_zone" value={form.location_zone} onChange={handleChange}>
-                <option value="">Sélectionner une zone…</option>
-                {ZONES.map(z => (
-                  <option key={z} value={z}>{z.charAt(0).toUpperCase() + z.slice(1)}</option>
-                ))}
-              </select>
+              <label className="label">
+                Zones géographiques
+                {form.location_zones.length > 0 && (
+                  <span className="ml-2 text-xs font-normal text-brand">
+                    {form.location_zones.length} sélectionnée{form.location_zones.length > 1 ? "s" : ""}
+                  </span>
+                )}
+              </label>
+              <div className="grid grid-cols-2 gap-2 mt-1.5">
+                {ZONES.map(z => {
+                  const checked = form.location_zones.includes(z.value)
+                  return (
+                    <label
+                      key={z.value}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
+                        checked
+                          ? "border-brand bg-brand/5 text-brand font-medium"
+                          : "border-gray-200 text-slate-600 hover:border-brand/40"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="accent-brand"
+                        checked={checked}
+                        onChange={() => {
+                          setForm(prev => ({
+                            ...prev,
+                            location_zones: checked
+                              ? prev.location_zones.filter(v => v !== z.value)
+                              : [...prev.location_zones, z.value],
+                          }))
+                        }}
+                      />
+                      {z.label}
+                    </label>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

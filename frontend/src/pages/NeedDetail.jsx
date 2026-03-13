@@ -3,14 +3,14 @@ import { useParams, useNavigate } from "react-router-dom"
 import PropTypes from "prop-types"
 import {
   ChevronLeft, FileText, MapPin, Clock, Loader2, Send,
-  Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp, Lock,
+  Zap, AlertTriangle, CheckCircle2, XCircle, TrendingUp,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { needsApi, applicationsApi, matchingApi, smeApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
 import ScoreCard from "../components/ScoreCard"
 import ScoreBreakdown from "../components/ScoreBreakdown"
-import PremiumToggle, { usePremium } from "../components/PremiumToggle"
+import { usePremium } from "../components/PremiumToggle"
 
 const STATUS_STYLES = {
   open: "bg-blue-50 text-blue-700 border-blue-200",
@@ -50,7 +50,7 @@ const TABS = [
 export default function NeedDetail() {
   const { need_id } = useParams()
   const navigate = useNavigate()
-  const isPremium = usePremium()
+  const isPremium = usePremium() // kept for PME premium matching in other views
   const role = localStorage.getItem("port2region_role")
   const backLabel =
     role === "port" ? "← Mes Besoins" :
@@ -444,67 +444,18 @@ export default function NeedDetail() {
                     }
                     const isQualified = result.total_score >= minScore
 
-                    if (isPremium) {
-                      return (
-                        <div
-                          key={`${result.sme_id}-${result.need_id}`}
-                          className={`rounded-xl border-2 overflow-hidden ${
-                            isQualified ? "border-green-400" : "border-gray-200 opacity-75"
-                          }`}
-                        >
-                          <ScoreCard sme={sme} matchResult={result} />
-                        </div>
-                      )
-                    }
-
-                    // Non-premium: name + score only, no breakdown
+                    // Port = full access always; others = score card too (public matching results)
                     return (
                       <div
                         key={`${result.sme_id}-${result.need_id}`}
-                        className={`card p-4 flex items-center justify-between gap-4 ${
-                          isQualified ? "border-l-4 border-l-green-400" : "border-l-4 border-l-gray-200 opacity-70"
+                        className={`rounded-xl border-2 overflow-hidden ${
+                          isQualified ? "border-green-400" : "border-gray-200 opacity-75"
                         }`}
                       >
-                        <div className="flex-1">
-                          <p className="text-sm font-bold text-slate-900">{sme.name}</p>
-                          <p className="text-xs text-muted">{sme.city} · {sme.sector}</p>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-32">
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                              <div
-                                className={`h-full rounded-full ${
-                                  result.total_score >= 70 ? "bg-success" :
-                                  result.total_score >= 50 ? "bg-warning" : "bg-danger"
-                                }`}
-                                style={{ width: `${result.total_score}%` }}
-                              />
-                            </div>
-                          </div>
-                          <span className={`text-sm font-bold tabular-nums ${
-                            result.total_score >= 70 ? "text-success" :
-                            result.total_score >= 50 ? "text-warning" : "text-danger"
-                          }`}>
-                            {result.total_score}/100
-                          </span>
-                        </div>
+                        <ScoreCard sme={sme} matchResult={result} />
                       </div>
                     )
                   })}
-                </div>
-              )}
-
-              {/* Premium gate for breakdown */}
-              {!isPremium && displayedResults.length > 0 && (
-                <div className="mt-4 card p-4 border border-amber-200 bg-amber-50 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <Lock size={16} className="text-amber-600" />
-                    <div>
-                      <p className="text-sm font-semibold text-amber-900">Détail des scores disponible en Premium</p>
-                      <p className="text-xs text-amber-700">Activez Premium pour voir la décomposition sector / capacité / localisation / réputation.</p>
-                    </div>
-                  </div>
-                  <PremiumToggle inline />
                 </div>
               )}
             </>

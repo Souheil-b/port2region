@@ -5,15 +5,13 @@ import { usePremium } from "./PremiumToggle"
 const NAV_LINKS = {
   pme: [
     { to: "/smes-dashboard", label: "Mon Espace", icon: LayoutDashboard },
-    { to: "/smes", label: "Toutes les PMEs", icon: Users },
     { to: "/needs", label: "Besoins du Port", icon: List },
-    { to: "/matching", label: "Trouver des Opportunités", icon: Zap },
+    { to: "/smes", label: "Toutes les PMEs", icon: Users },
   ],
   port: [
     { to: "/needs", label: "Mes Besoins", icon: List },
     { to: "/needs/publish", label: "Publier un Besoin", icon: FileText },
     { to: "/smes", label: "PMEs Disponibles", icon: Users },
-    { to: "/matching", label: "Lancer le Matching", icon: Zap },
   ],
   investisseur: [
     { to: "/dashboard", label: "Opportunités Gaps", icon: TrendingUp },
