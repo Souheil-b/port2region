@@ -65,17 +65,11 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow local dev + any Vercel preview/prod + explicit overrides via env
-_cors_env = os.environ.get("CORS_ORIGINS", "")
-if _cors_env:
-    ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
-else:
-    ALLOWED_ORIGINS = ["*"]  # open by default for demo/hackathon
-
+# CORS — open for demo/hackathon (localStorage auth, no cookies)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=ALLOWED_ORIGINS != ["*"],  # credentials incompatible with wildcard
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
