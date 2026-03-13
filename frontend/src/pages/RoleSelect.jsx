@@ -22,7 +22,7 @@ const ROLES = [
     borderColor: "hover:border-teal-500",
     btnColor: "bg-teal-600 hover:bg-teal-700",
     description: "Publiez vos besoins en prestataires et lancez le matching intelligent",
-    to: "/matching",
+    to: "/needs",
   },
   {
     key: "investisseur",
