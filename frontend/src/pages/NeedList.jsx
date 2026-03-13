@@ -36,6 +36,7 @@ export default function NeedList() {
   const [needs, setNeeds] = useState([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState("Tous")
+  const [search, setSearch] = useState("")
   const [applicationCounts, setApplicationCounts] = useState({})
   const [page, setPage] = useState(1)
   const [matchingAll, setMatchingAll] = useState(false)
@@ -77,7 +78,14 @@ export default function NeedList() {
     ? needs.map(n => n.status === "gap" ? { ...n, status: "open" } : n)
     : needs
   const STATUSES = isPme ? STATUSES_PME : STATUSES_PORT
-  const filtered = filter === "Tous" ? visibleNeeds : visibleNeeds.filter((n) => n.status === filter)
+  const byStatus = filter === "Tous" ? visibleNeeds : visibleNeeds.filter((n) => n.status === filter)
+  const filtered = search
+    ? byStatus.filter(n =>
+        n.title.toLowerCase().includes(search.toLowerCase()) ||
+        n.location_zone?.toLowerCase().includes(search.toLowerCase()) ||
+        n.tags?.some(t => t.toLowerCase().includes(search.toLowerCase()))
+      )
+    : byStatus
   const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const statusLabels = isPme ? STATUS_LABELS_PME : STATUS_LABELS
 
@@ -105,6 +113,17 @@ export default function NeedList() {
               : <><Zap size={13} /> Matching global</>}
           </button>
         )}
+      </div>
+
+      {/* Search */}
+      <div className="relative mb-3">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" /></svg>
+        <input
+          className="input pl-9"
+          placeholder="Rechercher par titre, zone, tag…"
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
       </div>
 
       {/* Filters */}

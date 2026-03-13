@@ -162,6 +162,14 @@ export default function PMEAuth() {
       {/* LOGIN TAB — clickable company grid */}
       {tab === "login" && (
         <div>
+          {/* Demo banner */}
+          <div className="flex items-center gap-3 bg-brand/5 border border-brand/20 rounded-xl px-4 py-3 mb-4">
+            <span className="text-lg">🎭</span>
+            <div>
+              <p className="text-xs font-bold text-brand">Mode démo — Se connecter en tant que</p>
+              <p className="text-xs text-muted">Cliquez sur une entreprise pour incarner ce profil PME</p>
+            </div>
+          </div>
           <div className="mb-4">
             <input
               className="input"
