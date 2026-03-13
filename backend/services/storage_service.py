@@ -198,7 +198,8 @@ def seed_from_mock_data() -> Dict[str, int]:
             continue
         mock_data = _read_json_file(seed_path)
         if not mock_data:
-            logger.warning("Seed file empty or missing: %s", seed_path)
+            # Empty seed file is normal (e.g. applications start empty)
+            logger.debug("Seed file empty or not found: %s — skipping.", seed_path)
             seeded[key] = 0
             continue
         _write_json_file(runtime_path, mock_data)
