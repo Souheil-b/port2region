@@ -1,1 +1,89 @@
-[]
+[
+  {
+    "id": "need-001",
+    "title": "Transport de conteneurs — zone franche Nador West Med — 3 camions minimum",
+    "raw_description": "L'autorité portuaire de Nador West Med recherche une entreprise de transport fiable pour assurer les mouvements de conteneurs au sein de la zone franche Nador West Med. La société retenue doit disposer d'une flotte d'au moins 3 camions porte-conteneurs avec permis d'accès à la zone franche, disponibles 5 jours par semaine. Les chauffeurs doivent maîtriser les procédures portuaires. Durée du contrat : 6 mois renouvelable. Justificatif d'expérience en transport de conteneurs requis.",
+    "tags": [
+      "transport_conteneurs",
+      "zone_franche",
+      "logistique_portuaire"
+    ],
+    "required_capacity": "Minimum 3 camions porte-conteneurs, disponibilité 5j/7, permis d'accès zone franche, chauffeurs certifiés portuaires",
+    "location_zone": "nador",
+    "deadline_days": 30,
+    "min_score": 60,
+    "published_by": "Nador West Med — Direction Logistique",
+    "published_at": "2025-03-01T08:00:00Z",
+    "status": "open"
+  },
+  {
+    "id": "need-002",
+    "title": "Maintenance industrielle des équipements de manutention portuaire — Zone industrielle Berkane",
+    "raw_description": "L'opérateur de la zone industrielle de Berkane recherche une entreprise de maintenance qualifiée pour assurer la maintenance préventive et corrective des équipements électromécaniques de manutention portuaire, notamment les convoyeurs, ponts roulants et systèmes hydrauliques. Compétences en soudure certifiée et méthodologie de maintenance préventive documentée requises. Minimum 8 techniciens qualifiés. Intervention d'urgence sous 6 heures obligatoire.",
+    "tags": [
+      "maintenance_industrielle",
+      "electromecanique",
+      "equipements_portuaires",
+      "soudure_certifiee",
+      "maintenance_preventive"
+    ],
+    "required_capacity": "Minimum 8 techniciens certifiés, intervention d'urgence 24h, capacité de soudure certifiée, plan de maintenance préventive",
+    "location_zone": "berkane",
+    "deadline_days": 45,
+    "min_score": 60,
+    "published_by": "Zone Industrielle Berkane — Direction Technique",
+    "published_at": "2025-03-05T09:00:00Z",
+    "status": "open"
+  },
+  {
+    "id": "need-003",
+    "title": "Restauration collective industrielle — 200 repas halal/jour pour les travailleurs du port Nador West Med",
+    "raw_description": "L'opérateur du port Nador West Med recherche une entreprise de restauration pour fournir des repas industriels quotidiens à environ 200 travailleurs portuaires et équipes techniques. La certification halal est obligatoire. Le respect des normes HACCP est exigé. Les menus doivent répondre aux normes nutritionnelles pour les travailleurs physiques. Le service doit démarrer dans les 30 jours suivant la signature du contrat. Installation de cuisine sur site ou livraison de proximité acceptées.",
+    "tags": [
+      "restauration_collective",
+      "traiteur_industriel",
+      "halal_certifie"
+    ],
+    "required_capacity": "Minimum 200 repas/jour, certifiée halal, conforme HACCP, livraison garantie dans les délais",
+    "location_zone": "nador",
+    "deadline_days": 30,
+    "min_score": 60,
+    "published_by": "Nador West Med — Ressources Humaines",
+    "published_at": "2025-03-10T10:00:00Z",
+    "status": "open"
+  },
+  {
+    "id": "need-004",
+    "title": "Ingénierie navale et services de pilotage portuaire — Terminal en eau profonde Nador West Med",
+    "raw_description": "L'autorité portuaire de Nador West Med recherche des services spécialisés en ingénierie navale pour la construction et la maintenance des nouvelles infrastructures du terminal en eau profonde. Cela comprend la revue de conception des ouvrages maritimes, les services de pilotage maritime pour les grands navires commerciaux dépassant 50 000 TPL, et la gestion de projets de construction navale. Des professionnels certifiés OMI sont requis. Aucun prestataire local équivalent n'a été identifié à ce jour.",
+    "tags": [
+      "ingenierie_navale",
+      "pilotage_portuaire",
+      "construction_navale"
+    ],
+    "required_capacity": "Ingénieurs navals certifiés OMI STCW, licence de pilotage portuaire, expérience sur navires >50 000 TPL, conception d'ouvrages maritimes",
+    "location_zone": "nador_west_med",
+    "deadline_days": 60,
+    "min_score": 60,
+    "published_by": "Nador West Med — Direction du Port",
+    "published_at": "2025-03-15T08:00:00Z",
+    "status": "open"
+  },
+  {
+    "id": "need-005",
+    "title": "Services de consignation maritime et avitaillement des navires — Nador West Med",
+    "raw_description": "L'autorité portuaire de Nador West Med recherche un agent de consignation maritime agréé capable de fournir des services complets d'avitaillement aux navires étrangers faisant escale à Nador West Med, notamment la coordination du carburant, l'approvisionnement en eau douce, les provisions et les pièces détachées. Une expertise douanière maritime spécialisée et une accréditation ADII sont requises. Aucun agent de consignation enregistré n'opère actuellement à Nador West Med.",
+    "tags": [
+      "consignation_maritime",
+      "avitaillement_navires",
+      "expertise_douaniere_maritime"
+    ],
+    "required_capacity": "Agent de consignation maritime agréé, accréditation douanière maritime ADII, logistique d'avitaillement, services aux navires 24h/24",
+    "location_zone": "nador_west_med",
+    "deadline_days": 45,
+    "min_score": 60,
+    "published_by": "Nador West Med — Direction Commerciale",
+    "published_at": "2025-03-20T09:00:00Z",
+    "status": "open"
+  }
+]

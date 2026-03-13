@@ -12,7 +12,7 @@ import SMEList from "./pages/SMEList.jsx"
 import NeedPublish from "./pages/NeedPublish.jsx"
 import NeedList from "./pages/NeedList.jsx"
 import NeedDetail from "./pages/NeedDetail.jsx"
-import Matching from "./pages/Matching.jsx"
+
 import InvestorDashboard from "./pages/InvestorDashboard.jsx"
 import MarketDashboard from "./pages/MarketDashboard.jsx"
 import PropTypes from "prop-types"
@@ -81,11 +81,7 @@ function App() {
             <Layout><NeedDetail /></Layout>
           </RouteGuard>
         } />
-        <Route path="/matching" element={
-          <RouteGuard allowedRoles={["pme", "port"]}>
-            <Layout><Matching /></Layout>
-          </RouteGuard>
-        } />
+        {/* /matching removed — matching is in NeedDetail (Port) and SMEDashboard premium (PME) */}
         <Route path="/register" element={
           <RouteGuard allowedRoles={["pme", "port"]}>
             <Layout><SMERegister /></Layout>
