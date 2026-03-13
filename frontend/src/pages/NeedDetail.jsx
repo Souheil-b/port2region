@@ -410,57 +410,70 @@ export default function NeedDetail() {
         </div>
       )}
 
-      {/* TAB: Candidatures */}
-      {activeTab === "applications" && (
-        <div>
-          {applications.length === 0 ? (
-            <div className="card p-10 text-center">
-              <p className="text-sm font-medium text-slate-800 mb-1">Aucune candidature reçue</p>
-              <p className="text-xs text-muted">Les PMEs peuvent postuler depuis leur espace personnel.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {applications.map((app) => (
-                <div key={app.id} className="card p-4">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{app.sme_name}</p>
-                      {app.message && (
-                        <p className="text-xs text-muted mt-1 italic">&quot;{app.message}&quot;</p>
+      {/* TAB: Candidatures — Port voit tout + actions, PME voit uniquement les siennes */}
+      {activeTab === "applications" && (() => {
+        const visibleApps = role === "pme" && currentPme
+          ? applications.filter(a => a.sme_id === currentPme.id)
+          : applications
+
+        return (
+          <div>
+            {visibleApps.length === 0 ? (
+              <div className="card p-10 text-center">
+                <p className="text-sm font-medium text-slate-800 mb-1">
+                  {role === "pme" ? "Vous n'avez pas encore postulé à ce besoin." : "Aucune candidature reçue"}
+                </p>
+                <p className="text-xs text-muted">
+                  {role === "pme" ? "Consultez l'onglet Détails pour postuler." : "Les PMEs peuvent postuler depuis leur espace."}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {visibleApps.map((app) => (
+                  <div key={app.id} className="card p-4">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div>
+                        {role === "port" && (
+                          <p className="text-sm font-bold text-slate-900">{app.sme_name}</p>
+                        )}
+                        {app.message && (
+                          <p className="text-xs text-muted mt-1 italic">&quot;{app.message}&quot;</p>
+                        )}
+                      </div>
+                      <span className={`badge border text-[11px] flex-shrink-0 ${APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.pending}`}>
+                        {APP_STATUS_LABELS[app.status] || app.status}
+                      </span>
+                    </div>
+                    <ScoreBar score={app.score} />
+                    <div className="flex items-center justify-between mt-3">
+                      <p className="text-xs text-muted">
+                        {new Date(app.applied_at).toLocaleDateString("fr-FR")}
+                      </p>
+                      {/* Accept/Refuse — Port only */}
+                      {role === "port" && app.status === "pending" && (
+                        <div className="flex gap-2">
+                          <button
+                            className="flex items-center gap-1 text-xs font-semibold text-success bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors"
+                            onClick={() => handleAccept(app.id)}
+                          >
+                            <CheckCircle2 size={12} /> Accepter
+                          </button>
+                          <button
+                            className="flex items-center gap-1 text-xs font-semibold text-danger bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
+                            onClick={() => handleReject(app.id)}
+                          >
+                            <XCircle size={12} /> Refuser
+                          </button>
+                        </div>
                       )}
                     </div>
-                    <span className={`badge border text-[11px] flex-shrink-0 ${APP_STATUS_STYLES[app.status] || APP_STATUS_STYLES.pending}`}>
-                      {APP_STATUS_LABELS[app.status] || app.status}
-                    </span>
                   </div>
-                  <ScoreBar score={app.score} />
-                  <div className="flex items-center justify-between mt-3">
-                    <p className="text-xs text-muted">
-                      {new Date(app.applied_at).toLocaleDateString("fr-FR")}
-                    </p>
-                    {app.status === "pending" && (
-                      <div className="flex gap-2">
-                        <button
-                          className="flex items-center gap-1 text-xs font-semibold text-success bg-green-50 hover:bg-green-100 border border-green-200 px-3 py-1.5 rounded-lg transition-colors"
-                          onClick={() => handleAccept(app.id)}
-                        >
-                          <CheckCircle2 size={12} /> Accepter
-                        </button>
-                        <button
-                          className="flex items-center gap-1 text-xs font-semibold text-danger bg-red-50 hover:bg-red-100 border border-red-200 px-3 py-1.5 rounded-lg transition-colors"
-                          onClick={() => handleReject(app.id)}
-                        >
-                          <XCircle size={12} /> Refuser
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+                ))}
+              </div>
+            )}
+          </div>
+        )
+      })()}
 
       {/* TAB: Matching IA */}
       {activeTab === "matching" && (
