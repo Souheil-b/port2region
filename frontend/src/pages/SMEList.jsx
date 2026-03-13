@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
-import { Users, Search, MapPin, Star } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Users, Search, MapPin, Star, ChevronRight } from "lucide-react"
 import { smeApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
 import Pagination from "../components/Pagination"
@@ -17,6 +18,7 @@ const SECTOR_DOT = {
 }
 
 export default function SMEList() {
+  const navigate = useNavigate()
   const [smes, setSmes] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState("")
@@ -84,15 +86,18 @@ export default function SMEList() {
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {paginated.map(sme => (
-            <div key={sme.id} className="card p-4">
+            <div key={sme.id} className="card p-4 cursor-pointer hover:border-brand hover:shadow-md transition-all group" onClick={() => navigate(`/smes/${sme.id}`)}>
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <div className={`w-2 h-2 rounded-full mt-0.5 flex-shrink-0 ${SECTOR_DOT[sme.sector] || "bg-gray-400"}`} />
                   <span className="text-sm font-semibold text-slate-900 leading-tight">{sme.name}</span>
                 </div>
-                <span className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-2 py-0.5 flex-shrink-0 ml-1">
-                  {SECTOR_LABELS[sme.sector] || sme.sector}
-                </span>
+                <div className="flex items-center gap-1 flex-shrink-0 ml-1">
+                  <span className="text-xs font-medium text-slate-500 bg-slate-50 border border-slate-200 rounded-full px-2 py-0.5">
+                    {SECTOR_LABELS[sme.sector] || sme.sector}
+                  </span>
+                  <ChevronRight size={13} className="text-muted group-hover:text-brand transition-colors" />
+                </div>
               </div>
 
               <div className="flex items-center gap-3 text-xs text-muted mb-3">

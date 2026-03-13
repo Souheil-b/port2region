@@ -435,7 +435,12 @@ export default function NeedDetail() {
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex-1 min-w-0">
                         {role === "port" ? (
-                          <p className="text-sm font-bold text-slate-900">{app.sme_name}</p>
+                          <button
+                            className="text-sm font-bold text-slate-900 hover:text-brand transition-colors text-left"
+                            onClick={() => navigate(`/smes/${app.sme_id}`)}
+                          >
+                            {app.sme_name} →
+                          </button>
                         ) : (
                           <p className="text-sm font-semibold text-slate-700">Ma candidature</p>
                         )}
@@ -578,6 +583,7 @@ export default function NeedDetail() {
                         <ScoreCard
                           sme={sme}
                           matchResult={result}
+                          onViewProfile={() => navigate(`/smes/${sme.id}`)}
                           onNotify={async () => {
                             try {
                               await applicationsApi.create({

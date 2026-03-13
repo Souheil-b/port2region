@@ -9,6 +9,7 @@ import SMERegister from "./pages/SMERegister.jsx"
 import PMEAuth from "./pages/PMEAuth.jsx"
 import SMEDashboard from "./pages/SMEDashboard.jsx"
 import SMEList from "./pages/SMEList.jsx"
+import SMEProfile from "./pages/SMEProfile.jsx"
 import NeedPublish from "./pages/NeedPublish.jsx"
 import NeedList from "./pages/NeedList.jsx"
 import NeedDetail from "./pages/NeedDetail.jsx"
@@ -69,6 +70,11 @@ function App() {
         <Route path="/smes" element={
           <RouteGuard allowedRoles={["pme", "port", "investisseur"]}>
             <Layout><SMEList /></Layout>
+          </RouteGuard>
+        } />
+        <Route path="/smes/:sme_id" element={
+          <RouteGuard allowedRoles={["pme", "port", "investisseur"]}>
+            <Layout><SMEProfile /></Layout>
           </RouteGuard>
         } />
         <Route path="/needs" element={

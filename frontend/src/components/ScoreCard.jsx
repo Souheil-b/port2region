@@ -1,6 +1,6 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
-import { MapPin, ChevronDown, ChevronUp, Bell } from "lucide-react"
+import { MapPin, ChevronDown, ChevronUp, Bell, ExternalLink } from "lucide-react"
 import toast from "react-hot-toast"
 import TagBadge from "./TagBadge"
 import ScoreBreakdown from "./ScoreBreakdown"
@@ -18,7 +18,7 @@ function ScoreBar({ score }) {
   )
 }
 
-export default function ScoreCard({ sme, matchResult, onNotify }) {
+export default function ScoreCard({ sme, matchResult, onNotify, onViewProfile }) {
   const [open, setOpen] = useState(false)
   const handleNotify = (e) => {
     e.stopPropagation()
@@ -31,7 +31,13 @@ export default function ScoreCard({ sme, matchResult, onNotify }) {
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-sm font-bold text-slate-900">{sme.name}</span>
+              <button
+                  onClick={onViewProfile}
+                  className={`text-sm font-bold text-left leading-tight transition-colors ${onViewProfile ? "hover:text-brand cursor-pointer" : "text-slate-900 cursor-default"}`}
+                >
+                  {sme.name}
+                  {onViewProfile && <ExternalLink size={11} className="inline ml-1 opacity-60" />}
+                </button>
               <span className="badge bg-gray-50 text-gray-600 border border-gray-200 text-[11px]">{sme.sector}</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-muted">
@@ -80,6 +86,7 @@ ScoreCard.propTypes = {
   sme: PropTypes.object.isRequired,
   matchResult: PropTypes.object.isRequired,
   onNotify: PropTypes.func,
+  onViewProfile: PropTypes.func,
 }
 
 ScoreBar.propTypes = { score: PropTypes.number.isRequired }

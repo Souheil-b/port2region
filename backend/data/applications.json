@@ -6,11 +6,11 @@
     "need_id": "need-001",
     "need_title": "Transport de conteneurs — zone franche Nador West Med — 3 camions minimum",
     "message": "",
-    "status": "pending",
+    "status": "rejected",
     "score": 16,
     "applied_at": "2026-03-13T02:24:04.803435",
-    "decided_at": null,
-    "decided_by": ""
+    "decided_at": "2026-03-13T02:59:38.799612",
+    "decided_by": "port_user"
   },
   {
     "id": "d475790e-fbe1-4d0a-8e9e-d580cdd15be6",
@@ -19,11 +19,11 @@
     "need_id": "need-001",
     "need_title": "Transport de conteneurs — zone franche Nador West Med — 3 camions minimum",
     "message": "",
-    "status": "pending",
+    "status": "rejected",
     "score": 16,
     "applied_at": "2026-03-13T02:26:47.836125",
-    "decided_at": null,
-    "decided_by": ""
+    "decided_at": "2026-03-13T02:59:37.927571",
+    "decided_by": "port_user"
   },
   {
     "id": "08ea41b3-6005-4fb0-ac93-c4815473ae10",
