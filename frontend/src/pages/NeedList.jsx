@@ -42,6 +42,9 @@ export default function NeedList() {
   const [matchingAll, setMatchingAll] = useState(false)
   const navigate = useNavigate()
   const role = localStorage.getItem("port2region_role")
+  const currentPort = (() => {
+    try { return JSON.parse(localStorage.getItem("port2region_current_port") || "null") } catch { return null }
+  })()
 
   async function runMatchingAll() {
     setMatchingAll(true)
@@ -73,10 +76,18 @@ export default function NeedList() {
   }, [])
 
   const isPme = role === "pme"
+  const isPort = role === "port"
+
+  // Port: show only needs for their connected port (or national needs)
+  // PME: show all needs (regional + national)
+  const portFilteredNeeds = isPort && currentPort
+    ? needs.filter(n => n.port_id === currentPort.id || n.visibility === "national")
+    : needs
+
   // PME: gaps show as open, no "gap" filter
   const visibleNeeds = isPme
-    ? needs.map(n => n.status === "gap" ? { ...n, status: "open" } : n)
-    : needs
+    ? portFilteredNeeds.map(n => n.status === "gap" ? { ...n, status: "open" } : n)
+    : portFilteredNeeds
   const STATUSES = isPme ? STATUSES_PME : STATUSES_PORT
   const byStatus = filter === "Tous" ? visibleNeeds : visibleNeeds.filter((n) => n.status === filter)
   const filtered = search
@@ -99,7 +110,10 @@ export default function NeedList() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-slate-900">Besoins Publiés</h1>
-            <p className="text-xs text-muted">{needs.length} besoin{needs.length !== 1 ? "s" : ""} — port Nador West Med</p>
+            <p className="text-xs text-muted">
+              {visibleNeeds.length} besoin{visibleNeeds.length !== 1 ? "s" : ""}
+              {isPort && currentPort ? ` — ${currentPort.name}` : " — Vue nationale"}
+            </p>
           </div>
         </div>
         {role === "port" && (

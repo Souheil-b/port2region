@@ -359,5 +359,25 @@
     "reputation_score": 0.0,
     "missions_count": 0,
     "created_at": "2026-03-13T02:26:30.460680"
+  },
+  {
+    "id": "a5c3b611-728a-49d5-879c-8c7af5213aa3",
+    "name": "Test",
+    "city": "Nador",
+    "sector": "transport",
+    "raw_description": "test ",
+    "tags": [
+      "transport_services",
+      "logistics"
+    ],
+    "capacity_summary": "General transport and logistics services operating in Nador.",
+    "reputation_score": 0.0,
+    "missions_count": 0,
+    "region_id": "oriental",
+    "port_id": "nador_west_med",
+    "rce": "",
+    "ice": "",
+    "is_available": true,
+    "created_at": "2026-03-29T12:34:42.532188"
   }
 ]

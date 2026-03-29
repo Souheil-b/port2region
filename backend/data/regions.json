@@ -1,0 +1,43 @@
+[
+  {
+    "id": "oriental",
+    "name": "Oriental",
+    "code": "OR",
+    "cities": [
+      "Nador",
+      "Oujda",
+      "Berkane",
+      "Taourirt"
+    ]
+  },
+  {
+    "id": "casablanca_settat",
+    "name": "Casablanca-Settat",
+    "code": "CS",
+    "cities": [
+      "Casablanca",
+      "Mohammedia",
+      "Settat"
+    ]
+  },
+  {
+    "id": "tanger_tetouan",
+    "name": "Tanger-Tétouan-Al Hoceima",
+    "code": "TT",
+    "cities": [
+      "Tanger",
+      "Tétouan",
+      "Al Hoceima"
+    ]
+  },
+  {
+    "id": "souss_massa",
+    "name": "Souss-Massa",
+    "code": "SM",
+    "cities": [
+      "Agadir",
+      "Tiznit",
+      "Taroudant"
+    ]
+  }
+]

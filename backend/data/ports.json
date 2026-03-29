@@ -1,0 +1,58 @@
+[
+  {
+    "id": "nador_west_med",
+    "name": "Nador West Med",
+    "region_id": "oriental",
+    "city": "Nador",
+    "is_active": true
+  },
+  {
+    "id": "beni_ensar",
+    "name": "Port de Béni Enzar",
+    "region_id": "oriental",
+    "city": "Nador",
+    "is_active": true
+  },
+  {
+    "id": "casablanca",
+    "name": "Port de Casablanca",
+    "region_id": "casablanca_settat",
+    "city": "Casablanca",
+    "is_active": true
+  },
+  {
+    "id": "mohammedia",
+    "name": "Port de Mohammedia",
+    "region_id": "casablanca_settat",
+    "city": "Mohammedia",
+    "is_active": true
+  },
+  {
+    "id": "tanger_med",
+    "name": "Tanger Med",
+    "region_id": "tanger_tetouan",
+    "city": "Tanger",
+    "is_active": true
+  },
+  {
+    "id": "tanger_ville",
+    "name": "Port de Tanger Ville",
+    "region_id": "tanger_tetouan",
+    "city": "Tanger",
+    "is_active": true
+  },
+  {
+    "id": "agadir",
+    "name": "Port d'Agadir",
+    "region_id": "souss_massa",
+    "city": "Agadir",
+    "is_active": true
+  },
+  {
+    "id": "tantan",
+    "name": "Port de Tan-Tan",
+    "region_id": "souss_massa",
+    "city": "Tan-Tan",
+    "is_active": true
+  }
+]
