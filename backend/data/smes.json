@@ -379,5 +379,28 @@
     "ice": "",
     "is_available": true,
     "created_at": "2026-03-29T12:34:42.532188"
+  },
+  {
+    "id": "4c739ac1-3fc4-41ac-b0e1-ab595ec7e206",
+    "name": "TRANSMED CASA SARL",
+    "city": "Casablanca",
+    "sector": "transport",
+    "raw_description": "Transport de conteneurs et logistique portuaire au port de Casablanca, flotte de 6 camions plateau, disponibilité 6j/7, certifiés OEA.",
+    "tags": [
+      "transport_conteneurs",
+      "logistique_portuaire",
+      "flotte_plateau",
+      "port_casablanca",
+      "oea_certifie"
+    ],
+    "capacity_summary": "Transport de conteneurs et logistique portuaire à Casablanca avec une flotte de 6 camions plateau disponibles 6 jours sur 7, certifiée OEA.",
+    "reputation_score": 0.0,
+    "missions_count": 0,
+    "region_id": "casablanca_settat",
+    "port_id": "",
+    "rce": "",
+    "ice": "",
+    "is_available": true,
+    "created_at": "2026-03-29T15:44:53.861528"
   }
 ]
