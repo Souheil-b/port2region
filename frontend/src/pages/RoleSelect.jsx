@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { Building2, Anchor, TrendingUp } from "lucide-react"
+import { geographyApi } from "../api/client"
 
 const ROLES = [
   {
@@ -10,12 +12,12 @@ const ROLES = [
     iconBg: "bg-blue-100",
     borderColor: "hover:border-blue-500",
     btnColor: "bg-blue-600 hover:bg-blue-700",
-    description: "Inscrivez votre entreprise et accédez aux opportunités du port Nador West Med",
+    description: "Inscrivez votre entreprise et accédez aux opportunités des ports marocains",
     to: "/pme-auth",
   },
   {
     key: "port",
-    title: "Port Nador Med",
+    title: "Opérateur Portuaire National",
     icon: Anchor,
     iconColor: "text-teal-600",
     iconBg: "bg-teal-100",
@@ -32,19 +34,36 @@ const ROLES = [
     iconBg: "bg-amber-100",
     borderColor: "hover:border-amber-500",
     btnColor: "bg-amber-600 hover:bg-amber-700",
-    description: "Analysez le marché, identifiez les gaps et les opportunités d'investissement dans la région Orientale",
+    description: "Analysez le marché national, identifiez les gaps et les opportunités d'investissement",
     to: "/dashboard",
   },
 ]
 
 export default function RoleSelect() {
   const navigate = useNavigate()
+  const [ports, setPorts] = useState([])
+  const [selectedPortId, setSelectedPortId] = useState("")
+
+  useEffect(() => {
+    geographyApi.ports().then((res) => {
+      const data = res.data?.data ?? []
+      setPorts(data)
+      if (data.length > 0) setSelectedPortId(data[0].id)
+    }).catch(() => {})
+  }, [])
 
   function handleSelect(role) {
     localStorage.setItem("port2region_role", role.key)
     // Clear PME session when switching roles
     if (role.key !== "pme") {
       localStorage.removeItem("port2region_current_pme")
+    }
+    // Store selected port for port role
+    if (role.key === "port" && selectedPortId) {
+      const port = ports.find((p) => p.id === selectedPortId)
+      if (port) {
+        localStorage.setItem("port2region_current_port", JSON.stringify(port))
+      }
     }
     navigate(role.to)
   }
@@ -82,6 +101,27 @@ export default function RoleSelect() {
                 </div>
                 <h2 className="text-xl font-bold text-slate-900 mb-3">{role.title}</h2>
                 <p className="text-sm text-slate-500 mb-6 leading-relaxed">{role.description}</p>
+
+                {/* Port selector for port role */}
+                {role.key === "port" && ports.length > 0 && (
+                  <div className="w-full mb-4" onClick={(e) => e.stopPropagation()}>
+                    <label className="text-xs text-slate-500 font-medium mb-1 block text-left">
+                      Port sélectionné
+                    </label>
+                    <select
+                      className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-300"
+                      value={selectedPortId}
+                      onChange={(e) => setSelectedPortId(e.target.value)}
+                    >
+                      {ports.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <button
                   className={`w-full py-2.5 px-6 ${role.btnColor} text-white text-sm font-semibold rounded-xl transition-colors`}
                   onClick={(e) => { e.stopPropagation(); handleSelect(role) }}

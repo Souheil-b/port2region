@@ -1,14 +1,16 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { Link } from "react-router-dom"
 import { Loader2, TrendingUp, Building2, Target, BarChart2, Zap, AlertTriangle, Lock } from "lucide-react"
+import PropTypes from "prop-types"
 import toast from "react-hot-toast"
 import PremiumToggle, { usePremium } from "../components/PremiumToggle"
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
 } from "recharts"
-import { smeApi, needsApi, matchingApi } from "../api/client"
+import { smeApi, needsApi, matchingApi, geographyApi } from "../api/client"
 import GapCard from "../components/GapCard"
-import { SECTOR_LABELS } from "../utils/formatters"
+import RegionPortFilter from "../components/RegionPortFilter"
+import { SECTOR_LABELS, REGION_LABELS } from "../utils/formatters"
 
 const CHART_COLORS = ["#2563eb", "#0891b2", "#7c3aed", "#d97706", "#16a34a", "#dc2626"]
 
@@ -35,39 +37,39 @@ function MetricRow({ label, value, max, color, suffix = "" }) {
   )
 }
 
+MetricRow.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.number.isRequired,
+  max: PropTypes.number.isRequired,
+  color: PropTypes.string.isRequired,
+  suffix: PropTypes.string,
+}
+
 export default function InvestorDashboard() {
   const isPremium = usePremium()
   const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState({
-    total_smes: 0, total_needs: 0, total_matches: 0, avg_score: 0, match_rate: 0,
-  })
-  const [sectorData, setSectorData] = useState([])
-  const [gaps, setGaps] = useState([])
+
+  // Raw data storage
+  const [rawSmes, setRawSmes] = useState([])
+  const [rawNeeds, setRawNeeds] = useState([])
+  const [rawMatches, setRawMatches] = useState([])
+  const [rawGaps, setRawGaps] = useState([])
+  const [ports, setPorts] = useState([])
+
+  // Active filter
+  const [filter, setFilter] = useState({ region_id: "", port_id: "" })
 
   useEffect(() => {
     async function load() {
       try {
-        const [smesRes, needsRes, matchesRes, gapsRes] = await Promise.all([
-          smeApi.list(), needsApi.list(), matchingApi.history(), matchingApi.gaps(),
+        const [smesRes, needsRes, matchesRes, gapsRes, portsRes] = await Promise.all([
+          smeApi.list(), needsApi.list(), matchingApi.history(), matchingApi.gaps(), geographyApi.ports(),
         ])
-        const smes = smesRes.data?.data ?? []
-        const needs = needsRes.data?.data ?? []
-        const matches = matchesRes.data?.data ?? []
-        const gapsList = gapsRes.data?.data ?? []
-
-        const needsWithMatch = new Set(matches.map(m => m.need_id))
-        const matchRate = needs.length > 0
-          ? Math.round((needsWithMatch.size / needs.length) * 100) : 0
-        const avgScore = matches.length > 0
-          ? Math.round(matches.reduce((acc, m) => acc + m.total_score, 0) / matches.length) : 0
-
-        setStats({ total_smes: smes.length, total_needs: needs.length, total_matches: matches.length, avg_score: avgScore, match_rate: matchRate })
-
-        const sectorCounts = smes.reduce((acc, s) => { acc[s.sector] = (acc[s.sector] || 0) + 1; return acc }, {})
-        setSectorData(Object.entries(sectorCounts).map(([sector, count]) => ({
-          name: SECTOR_LABELS[sector] || sector, count,
-        })))
-        setGaps(gapsList)
+        setRawSmes(smesRes.data?.data ?? [])
+        setRawNeeds(needsRes.data?.data ?? [])
+        setRawMatches(matchesRes.data?.data ?? [])
+        setRawGaps(gapsRes.data?.data ?? [])
+        setPorts(portsRes.data?.data ?? [])
       } catch (_err) {
         toast.error("Erreur lors du chargement du dashboard.")
       } finally {
@@ -76,6 +78,65 @@ export default function InvestorDashboard() {
     }
     load()
   }, [])
+
+  // Filtered data
+  const filteredSmes = useMemo(() => rawSmes.filter(s => {
+    if (filter.port_id && s.port_id !== filter.port_id) return false
+    if (filter.region_id && !filter.port_id && s.region_id !== filter.region_id) return false
+    return true
+  }), [rawSmes, filter])
+
+  const filteredNeeds = useMemo(() => rawNeeds.filter(n => {
+    if (filter.port_id && n.port_id !== filter.port_id) return false
+    if (filter.region_id && !filter.port_id) {
+      const port = ports.find(p => p.id === n.port_id)
+      if (port && port.region_id !== filter.region_id) return false
+    }
+    return true
+  }), [rawNeeds, filter, ports])
+
+  const filteredMatches = useMemo(() => {
+    const smeIds = new Set(filteredSmes.map(s => s.id))
+    return rawMatches.filter(m => smeIds.has(m.sme_id))
+  }, [rawMatches, filteredSmes])
+
+  const filteredGaps = useMemo(() => {
+    const needIds = new Set(filteredNeeds.map(n => n.id))
+    return rawGaps.filter(g => needIds.has(g.need_id))
+  }, [rawGaps, filteredNeeds])
+
+  const stats = useMemo(() => {
+    const needsWithMatch = new Set(filteredMatches.map(m => m.need_id))
+    const matchRate = filteredNeeds.length > 0
+      ? Math.round((needsWithMatch.size / filteredNeeds.length) * 100) : 0
+    const avgScore = filteredMatches.length > 0
+      ? Math.round(filteredMatches.reduce((acc, m) => acc + m.total_score, 0) / filteredMatches.length) : 0
+    return {
+      total_smes: filteredSmes.length,
+      total_needs: filteredNeeds.length,
+      total_matches: filteredMatches.length,
+      avg_score: avgScore,
+      match_rate: matchRate,
+    }
+  }, [filteredSmes, filteredNeeds, filteredMatches])
+
+  const sectorData = useMemo(() => {
+    const counts = filteredSmes.reduce((acc, s) => { acc[s.sector] = (acc[s.sector] || 0) + 1; return acc }, {})
+    return Object.entries(counts).map(([sector, count]) => ({
+      name: SECTOR_LABELS[sector] || sector, count,
+    }))
+  }, [filteredSmes])
+
+  const subtitle = useMemo(() => {
+    if (filter.port_id) {
+      const port = ports.find(p => p.id === filter.port_id)
+      return `Port ${port?.name || filter.port_id}`
+    }
+    if (filter.region_id) {
+      return `Région ${REGION_LABELS[filter.region_id] || filter.region_id}`
+    }
+    return "Vue Nationale — toutes les régions"
+  }, [filter, ports])
 
   if (loading) {
     return (
@@ -91,13 +152,18 @@ export default function InvestorDashboard() {
       {/* Dark header section */}
       <div className="bg-slate-900 border-b border-slate-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-9 h-9 bg-brand/20 rounded-xl flex items-center justify-center">
-              <TrendingUp size={18} className="text-brand-light" />
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-brand/20 rounded-xl flex items-center justify-center">
+                <TrendingUp size={18} className="text-brand-light" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-white">Dashboard Investisseur</h1>
+                <p className="text-xs text-gray-400">{subtitle}</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white">Dashboard Investisseur</h1>
-              <p className="text-xs text-gray-400">Vue d'ensemble de l'écosystème PME — région Orientale</p>
+            <div className="flex-shrink-0">
+              <RegionPortFilter onChange={setFilter} />
             </div>
           </div>
 
@@ -163,12 +229,12 @@ export default function InvestorDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="section-title">
               Opportunités d&apos;Investissement
-              <span className="ml-2 text-muted font-normal text-sm">({gaps.length})</span>
+              <span className="ml-2 text-muted font-normal text-sm">({filteredGaps.length})</span>
             </h2>
             <PremiumToggle inline />
           </div>
           {isPremium ? (
-            gaps.length === 0 ? (
+            filteredGaps.length === 0 ? (
               <div className="card p-10 text-center">
                 <AlertTriangle size={28} className="text-muted mx-auto mb-3" />
                 <p className="text-sm font-medium text-slate-800 mb-1">Aucune opportunité détectée</p>
@@ -179,15 +245,15 @@ export default function InvestorDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {gaps.map((gap) => <GapCard key={gap.id} gap={gap} />)}
+                {filteredGaps.map((gap) => <GapCard key={gap.id} gap={gap} />)}
               </div>
             )
           ) : (
             <div className="relative">
               <div className="blur-sm pointer-events-none">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {gaps.slice(0, 3).map((gap) => <GapCard key={gap.id} gap={gap} />)}
-                  {gaps.length === 0 && (
+                  {filteredGaps.slice(0, 3).map((gap) => <GapCard key={gap.id} gap={gap} />)}
+                  {filteredGaps.length === 0 && (
                     <>
                       <div className="card p-5"><p className="text-sm font-bold text-slate-900">Ingénierie Maritime</p><p className="text-xs text-muted mt-1">Opportunité détectée…</p></div>
                       <div className="card p-5"><p className="text-sm font-bold text-slate-900">Consignation</p><p className="text-xs text-muted mt-1">Gap de marché identifié…</p></div>

@@ -2,16 +2,17 @@
 
 Routes:
     POST   /api/needs           — create Need (triggers Claude tag extraction)
-    GET    /api/needs           — list all Needs
+    GET    /api/needs           — list all Needs (optional ?port_id=, ?visibility=)
     GET    /api/needs/{need_id} — get single Need
+    PUT    /api/needs/{need_id} — partial update Need (tags, visibility, required_capacity)
 """
 
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
-from models.need import Need, NeedCreate
+from models.need import Need, NeedCreate, NeedUpdate
 from services import claude_service, storage_service
 from services.notification_service import create_notification
 
@@ -74,6 +75,8 @@ async def create_need(payload: NeedCreate) -> Dict[str, Any]:
             deadline_days=payload.deadline_days,
             min_score=payload.min_score,
             published_by=payload.published_by,
+            port_id=payload.port_id,
+            visibility=payload.visibility,
         )
         storage_service.upsert("needs", need.model_dump(mode="json"))
         logger.info("Need created: %s (%s)", need.id, need.title)
@@ -102,13 +105,24 @@ async def create_need(payload: NeedCreate) -> Dict[str, Any]:
 
 
 @router.get("", response_model=Dict[str, Any])
-def list_needs() -> Dict[str, Any]:
-    """Return all Needs in the data store.
+def list_needs(
+    port_id: Optional[str] = Query(default=None, description="Filter by port ID"),
+    visibility: Optional[str] = Query(default=None, description="Filter by visibility (regional|national)"),
+) -> Dict[str, Any]:
+    """Return Needs from the data store, with optional filters.
+
+    Args:
+        port_id (Optional[str]): Filter by port identifier.
+        visibility (Optional[str]): Filter by visibility scope.
 
     Returns:
         Dict[str, Any]: List of Needs wrapped in success envelope.
     """
     needs = storage_service.load_all("needs")
+    if port_id is not None:
+        needs = [n for n in needs if n.get("port_id") == port_id]
+    if visibility is not None:
+        needs = [n for n in needs if n.get("visibility", "regional") == visibility]
     return _ok(needs)
 
 
@@ -125,4 +139,27 @@ def get_need(need_id: str) -> Dict[str, Any]:
     need = storage_service.find_by_id("needs", need_id)
     if need is None:
         return _err(f"Need '{need_id}' not found.")
+    return _ok(need)
+
+
+@router.put("/{need_id}", response_model=Dict[str, Any])
+def update_need(need_id: str, payload: NeedUpdate) -> Dict[str, Any]:
+    """Partially update an existing Need.
+
+    Allowed fields: tags, visibility, required_capacity.
+
+    Args:
+        need_id (str): Need identifier.
+        payload (NeedUpdate): Fields to update.
+
+    Returns:
+        Dict[str, Any]: Updated Need or error envelope.
+    """
+    need = storage_service.find_by_id("needs", need_id)
+    if need is None:
+        return _err(f"Need '{need_id}' not found.")
+    update_data = payload.model_dump(exclude_none=True)
+    need.update(update_data)
+    storage_service.upsert("needs", need)
+    logger.info("Need updated: %s — fields: %s", need_id, list(update_data.keys()))
     return _ok(need)

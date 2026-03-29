@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom"
-import { Anchor, Building2, FileText, Zap, TrendingUp, BarChart2, Users, List, LayoutDashboard } from "lucide-react"
+import { Anchor, Building2, FileText, TrendingUp, BarChart2, Users, List, LayoutDashboard, Star } from "lucide-react"
 import PremiumToggle, { usePremium } from "./PremiumToggle"
 import NotificationBell from "./NotificationBell"
 
@@ -8,6 +8,7 @@ const NAV_LINKS = {
     { to: "/smes-dashboard", label: "Mon Espace", icon: LayoutDashboard },
     { to: "/needs", label: "Besoins du Port", icon: List },
     { to: "/smes", label: "Toutes les PMEs", icon: Users },
+    { to: "/subscription", label: "Abonnement", icon: Star },
   ],
   port: [
     { to: "/needs", label: "Mes Besoins", icon: List },
@@ -19,6 +20,7 @@ const NAV_LINKS = {
     { to: "/dashboard/market", label: "Données Marché CRI", icon: BarChart2 },
     { to: "/smes", label: "PMEs Inscrites", icon: Users },
     { to: "/needs", label: "Besoins Publiés", icon: List },
+    { to: "/subscription", label: "Abonnement", icon: Star },
   ],
 }
 
@@ -39,17 +41,31 @@ function getCurrentPmeName() {
   }
 }
 
+function getCurrentPortName() {
+  try {
+    const stored = localStorage.getItem("port2region_current_port")
+    if (!stored) return null
+    const port = JSON.parse(stored)
+    return port?.name || null
+  } catch {
+    return null
+  }
+}
+
 export default function Navbar() {
   const navigate = useNavigate()
   const role = localStorage.getItem("port2region_role")
   const links = role ? (NAV_LINKS[role] ?? []) : []
   const isPremium = usePremium()
   const pmeName = role === "pme" ? getCurrentPmeName() : null
+  const portName = role === "port" ? getCurrentPortName() : null
 
   const roleLabel =
     role === "pme" && pmeName
       ? pmeName.length > 18 ? pmeName.slice(0, 17) + "…" : pmeName
-      : { pme: "PME", port: "Port Nador Med", investisseur: "Investisseur" }[role] ?? role
+      : role === "port" && portName
+      ? portName.length > 22 ? portName.slice(0, 21) + "…" : portName
+      : { pme: "PME", port: "Opérateur Portuaire", investisseur: "Investisseur" }[role] ?? role
 
   return (
     <nav className="sticky top-0 z-50 bg-slate-900 border-b border-slate-700">

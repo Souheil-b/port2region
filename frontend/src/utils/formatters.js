@@ -66,6 +66,16 @@ export function formatSector(sector) {
 }
 
 /**
+ * Region display labels.
+ */
+export const REGION_LABELS = {
+  oriental: "Oriental",
+  casablanca_settat: "Casablanca-Settat",
+  tanger_tetouan: "Tanger-Tétouan",
+  souss_massa: "Souss-Massa",
+};
+
+/**
  * Status display config.
  */
 export const STATUS_CONFIG = {

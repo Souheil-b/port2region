@@ -3,14 +3,18 @@ import { useNavigate } from "react-router-dom"
 import { FileText, Loader2, CheckCircle2, Zap, AlertTriangle, TrendingUp, MoreHorizontal, RotateCcw } from "lucide-react"
 import toast from "react-hot-toast"
 import PropTypes from "prop-types"
-import { needsApi, matchingApi, smeApi, demoApi } from "../api/client"
+import { needsApi, matchingApi, smeApi, demoApi, geographyApi } from "../api/client"
 import DemoFillButton from "../components/DemoFillButton"
+import TagBadge from "../components/TagBadge"
+import ScoreCard from "../components/ScoreCard"
+import TagConfirmStep from "../components/TagConfirmStep"
 
 const DEMO_NEEDS = [
   {
     title: "Transport conteneurs zone franche — flotte 3 camions min",
     raw_description: "Besoin de transport de conteneurs entre le terminal et la zone franche de Nador West Med. Minimum 3 camions disponibles, permis transport matières dangereuses souhaité. Disponibilité 5j/7, intervention possible le week-end sur demande.",
-    location_zones: ["nador"],
+    port_id: "nador_west_med",
+    visibility: "regional",
     deadline_days: 30,
     min_score: 60,
     published_by: "TMSA — Nador West Med",
@@ -18,7 +22,8 @@ const DEMO_NEEDS = [
   {
     title: "Restauration collective chantier — 200 repas/jour",
     raw_description: "Prestataire de restauration collective pour les équipes de construction et d'exploitation. Capacité 200 repas/jour, midi et soir, 6j/7. Cuisine équipée normes ONSSA, véhicule frigorifique, 5 agents minimum. Expérience restauration industrielle exigée.",
-    location_zones: ["nador", "berkane"],
+    port_id: "beni_ensar",
+    visibility: "regional",
     deadline_days: 45,
     min_score: 55,
     published_by: "ANP — Agence Nationale des Ports",
@@ -26,34 +31,25 @@ const DEMO_NEEDS = [
   {
     title: "Maintenance préventive équipements portuaires",
     raw_description: "Contrat de maintenance préventive et curative pour grues portuaires, convoyeurs et équipements électromécaniques. Intervention H24, techniciens certifiés, stock de pièces de rechange. Expérience en milieu industriel portuaire requise.",
-    location_zones: ["nador"],
+    port_id: "nador_west_med",
+    visibility: "regional",
     deadline_days: 60,
     min_score: 65,
     published_by: "Zone Logistique Nador West Med",
   },
-  // ✅ Besoin garanti match — conçu pour matcher TRANSORIENT SARL + NADOR LOGISTICS
-  // preset_tags bypass Claude extraction → match garanti même si Claude échoue
+  // ✅ Besoin garanti match — preset_tags bypass Claude extraction → match garanti même si Claude échoue
   {
     _guaranteed: true,
     title: "Transport frigorifique — produits de la mer débarqués Nador West Med",
     raw_description: "Le port Nador West Med recherche un prestataire de transport frigorifique pour acheminer les produits de la mer fraîchement débarqués vers les marchés régionaux et les unités de transformation agroalimentaire. Minimum 3 camions frigorifiques disponibles, chauffeurs expérimentés en procédures portuaires, certification ADR appréciée. Disponibilité 7j/7, démarrage sous 15 jours après signature du contrat.",
-    location_zones: ["nador"],
+    port_id: "nador_west_med",
+    visibility: "national",
     deadline_days: 15,
     min_score: 60,
     published_by: "TMSA — Nador West Med",
     preset_tags: ["transport_frigorifique", "logistique_portuaire", "transport_conteneurs", "camions_porteurs"],
     preset_required_capacity: "Minimum 3 camions frigorifiques disponibles, disponibilité 7j/7, chauffeurs certifiés procédures portuaires",
   },
-]
-import TagBadge from "../components/TagBadge"
-import ScoreCard from "../components/ScoreCard"
-
-const ZONES = [
-  { value: "nador", label: "Nador / Nador West Med" },
-  { value: "oujda", label: "Oujda" },
-  { value: "berkane", label: "Berkane" },
-  { value: "taourirt", label: "Taourirt" },
-  { value: "oriental", label: "Toute la région Orientale" },
 ]
 
 const DONNEURS_ORDRE = [
@@ -71,7 +67,8 @@ const DONNEURS_ORDRE = [
 const INITIAL_FORM = {
   title: "",
   raw_description: "",
-  location_zones: [],   // multi-select
+  port_id: "",
+  visibility: "regional",
   deadline_days: 30,
   min_score: 60,
   published_by: "",
@@ -110,8 +107,8 @@ function MatchingResults({ need, matches, gap, smes }) {
                 Aucune PME qualifiée — Gap détecté
               </p>
               <p className="text-xs text-muted mb-3">
-                Aucune PME n'atteint le score minimum de {need.min_score}/100 pour ce besoin.
-                Une opportunité d'investissement a été générée.
+                Aucune PME n&apos;atteint le score minimum de {need.min_score}/100 pour ce besoin.
+                Une opportunité d&apos;investissement a été générée.
               </p>
               {gap && (
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
@@ -141,16 +138,21 @@ MatchingResults.propTypes = {
 export default function NeedPublish() {
   const navigate = useNavigate()
   const [form, setForm] = useState(INITIAL_FORM)
-  const [step, setStep] = useState("form") // form | publishing | matching | done
+  const [step, setStep] = useState("form") // form | publishing | tagConfirm | matching | done
   const [publishedNeed, setPublishedNeed] = useState(null)
   const [matchResults, setMatchResults] = useState([])
   const [matchGap, setMatchGap] = useState(null)
   const [allSmes, setAllSmes] = useState([])
   const [menuOpen, setMenuOpen] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [ports, setPorts] = useState([])
   const menuRef = useRef(null)
 
-  // Ferme le menu si on clique ailleurs
+  useEffect(() => {
+    geographyApi.ports().then(r => setPorts(r.data?.data ?? [])).catch(() => {})
+  }, [])
+
+  // Close menu on outside click
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false)
@@ -164,7 +166,6 @@ export default function NeedPublish() {
     setResetting(true)
     try {
       await demoApi.reset()
-      // Reset local state aussi
       setStep("form")
       setForm(INITIAL_FORM)
       setPublishedNeed(null)
@@ -184,40 +185,11 @@ export default function NeedPublish() {
     setForm(prev => ({ ...prev, [name]: type === "number" ? Number(value) : value }))
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault()
-    if (!form.title || !form.raw_description || form.location_zones.length === 0 || !form.published_by) {
-      toast.error("Veuillez remplir tous les champs obligatoires (titre, description, zones, donneur d'ordre).")
-      return
-    }
-
-    // Step 1 — Publish need + extract tags
-    setStep("publishing")
-    let need
-    try {
-      // Serialize multi-zones to comma-separated string for the API
-      // preset_tags / preset_required_capacity are passed as-is when present (guaranteed demo match)
-      const { location_zones, _guaranteed, ...rest } = form
-      const payload = {
-        ...rest,
-        location_zone: location_zones.join(", "),
-      }
-      const res = await needsApi.publish(payload)
-      need = res.data.data
-      setPublishedNeed(need)
-      setForm(INITIAL_FORM)
-      toast.success("Besoin publié — lancement du matching...")
-    } catch (err) {
-      toast.error(err?.response?.data?.error || "Erreur lors de la publication.")
-      setStep("form")
-      return
-    }
-
-    // Step 2 — Auto-run matching for this need
+  async function runMatching(needId) {
     setStep("matching")
     try {
       const [matchRes, smesRes] = await Promise.all([
-        matchingApi.runForNeed(need.id),
+        matchingApi.runForNeed(needId),
         smeApi.list(),
       ])
       const data = matchRes.data.data
@@ -228,12 +200,58 @@ export default function NeedPublish() {
       if (data.is_gap) {
         toast("Gap détecté — opportunité investisseur générée", { icon: "⚠️" })
       } else {
-        toast.success(`${data.total_matches} PME${data.total_matches !== 1 ? "s" : ""} qualifiée${data.total_matches !== 1 ? "s" : ""} trouvée${data.total_matches !== 1 ? "s" : ""}`)
+        const n = data.total_matches
+        toast.success(`${n} PME${n !== 1 ? "s" : ""} qualifiée${n !== 1 ? "s" : ""} trouvée${n !== 1 ? "s" : ""}`)
       }
     } catch {
       toast.error("Matching automatique échoué — accédez manuellement à l'onglet Matching.")
     } finally {
       setStep("done")
+    }
+  }
+
+  async function handleTagsConfirm(finalTags) {
+    let needForMatching = publishedNeed
+    const originalTags = (publishedNeed.tags || []).slice().sort().join(",")
+    const confirmedTags = finalTags.slice().sort().join(",")
+    if (confirmedTags !== originalTags) {
+      try {
+        const updateRes = await needsApi.update(publishedNeed.id, { tags: finalTags })
+        const updated = updateRes.data?.data || { ...publishedNeed, tags: finalTags }
+        needForMatching = updated
+        setPublishedNeed(updated)
+      } catch {
+        needForMatching = { ...publishedNeed, tags: finalTags }
+        setPublishedNeed(needForMatching)
+      }
+    }
+    await runMatching(needForMatching.id)
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    if (!form.title || !form.raw_description || !form.port_id || !form.published_by) {
+      toast.error("Veuillez remplir tous les champs obligatoires (titre, description, port, donneur d'ordre).")
+      return
+    }
+
+    setStep("publishing")
+    try {
+      const { _guaranteed, ...rest } = form
+      const portObj = ports.find(p => p.id === form.port_id)
+      const payload = {
+        ...rest,
+        location_zone: portObj?.city || form.port_id,
+      }
+      const res = await needsApi.publish(payload)
+      const need = res.data.data
+      setPublishedNeed(need)
+      setForm(INITIAL_FORM)
+      toast.success("Besoin publié — confirmez les tags extraits par l'IA")
+      setStep("tagConfirm")
+    } catch (err) {
+      toast.error(err?.response?.data?.error || "Erreur lors de la publication.")
+      setStep("form")
     }
   }
 
@@ -280,6 +298,16 @@ export default function NeedPublish() {
         </p>
       </div>
 
+      {/* Tag confirmation step */}
+      {step === "tagConfirm" && publishedNeed && (
+        <TagConfirmStep
+          tags={publishedNeed.tags || []}
+          sector="transport"
+          onConfirm={handleTagsConfirm}
+          onBack={() => { setStep("form"); setPublishedNeed(null) }}
+        />
+      )}
+
       {/* Form */}
       {(step === "form" || isPublishing) && (
         <div className="card p-6">
@@ -304,6 +332,7 @@ export default function NeedPublish() {
                 </div>
               ))}
             </div>
+
             <div>
               <label className="label">Titre du besoin</label>
               <input className="input" name="title" value={form.title} onChange={handleChange}
@@ -320,44 +349,40 @@ export default function NeedPublish() {
               </select>
             </div>
 
-            <div>
-              <label className="label">
-                Zones géographiques
-                {form.location_zones.length > 0 && (
-                  <span className="ml-2 text-xs font-normal text-brand">
-                    {form.location_zones.length} sélectionnée{form.location_zones.length > 1 ? "s" : ""}
-                  </span>
-                )}
-              </label>
-              <div className="grid grid-cols-2 gap-2 mt-1.5">
-                {ZONES.map(z => {
-                  const checked = form.location_zones.includes(z.value)
-                  return (
-                    <label
-                      key={z.value}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm transition-colors ${
-                        checked
-                          ? "border-brand bg-brand/5 text-brand font-medium"
-                          : "border-gray-200 text-slate-600 hover:border-brand/40"
-                      }`}
-                    >
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Port concerné</label>
+                <select className="input" name="port_id" value={form.port_id} onChange={handleChange}>
+                  <option value="">Sélectionner un port…</option>
+                  {ports.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="label">Visibilité</label>
+                <div className="flex gap-3 mt-2">
+                  {[
+                    { value: "regional", label: "Régional" },
+                    { value: "national", label: "National" },
+                  ].map(opt => (
+                    <label key={opt.value} className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer text-sm flex-1 justify-center transition-colors ${
+                      form.visibility === opt.value
+                        ? "border-brand bg-brand/5 text-brand font-medium"
+                        : "border-gray-200 text-slate-600 hover:border-brand/40"
+                    }`}>
                       <input
-                        type="checkbox"
-                        className="accent-brand"
-                        checked={checked}
-                        onChange={() => {
-                          setForm(prev => ({
-                            ...prev,
-                            location_zones: checked
-                              ? prev.location_zones.filter(v => v !== z.value)
-                              : [...prev.location_zones, z.value],
-                          }))
-                        }}
+                        type="radio"
+                        name="visibility"
+                        value={opt.value}
+                        checked={form.visibility === opt.value}
+                        onChange={handleChange}
+                        className="sr-only"
                       />
-                      {z.label}
+                      {opt.label}
                     </label>
-                  )
-                })}
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -400,7 +425,7 @@ export default function NeedPublish() {
         <div className="card p-8 text-center mt-4">
           <Loader2 size={32} className="animate-spin text-brand mx-auto mb-3" />
           <p className="text-sm font-semibold text-slate-900 mb-1">Matching en cours...</p>
-          <p className="text-xs text-muted">L'IA analyse {allSmes.length || "toutes les"} PMEs de la région Orientale</p>
+          <p className="text-xs text-muted">L&apos;IA analyse les PMEs enregistrées pour ce port</p>
         </div>
       )}
 

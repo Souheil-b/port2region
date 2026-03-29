@@ -24,7 +24,7 @@ SCORE_WEIGHTS = {
     "reputation": 15,
 }
 
-# Location scores reflect proximity to Nador West Med port.
+# Location scores reflect proximity to Nador West Med port (city-based fallback).
 # Any city not listed scores 0 (outside Oriental region).
 LOCATION_SCORES: Dict[str, int] = {
     "nador": 20,
@@ -32,6 +32,26 @@ LOCATION_SCORES: Dict[str, int] = {
     "oujda": 16,
     "taourirt": 10,
     "autre_oriental": 10,
+}
+
+# Region adjacency map — used for multi-region location scoring.
+REGION_ADJACENCY: Dict[str, List[str]] = {
+    "oriental": ["tanger_tetouan"],
+    "tanger_tetouan": ["oriental", "casablanca_settat"],
+    "casablanca_settat": ["tanger_tetouan", "souss_massa"],
+    "souss_massa": ["casablanca_settat"],
+}
+
+# Maps port_id → region_id for resolving need port region in scoring.
+PORT_REGION: Dict[str, str] = {
+    "nador_west_med": "oriental",
+    "beni_ensar": "oriental",
+    "casablanca": "casablanca_settat",
+    "mohammedia": "casablanca_settat",
+    "tanger_med": "tanger_tetouan",
+    "tanger_ville": "tanger_tetouan",
+    "agadir": "souss_massa",
+    "tantan": "souss_massa",
 }
 
 MIN_SCORE_DEFAULT = 60
@@ -72,12 +92,10 @@ def compute_sector_score(sme_tags: List[str], need_tags: List[str]) -> Tuple[int
 
 
 def compute_location_score(sme_city: str, need_location_zone: str) -> Tuple[int, str]:
-    """Compute location score based on SME city proximity to Nador West Med.
+    """Compute location score based on SME city proximity (city-based fallback).
 
     Cities mapped explicitly in LOCATION_SCORES earn the listed points.
     Any city not in the map scores 0 (considered outside the Oriental region).
-    The need_location_zone is used to apply a zone-match bonus when the SME's
-    city directly matches the required zone (awards max for that zone).
 
     Args:
         sme_city (str): City from the SME profile.
@@ -107,6 +125,39 @@ def compute_location_score(sme_city: str, need_location_zone: str) -> Tuple[int,
         explanation = f"City '{sme_city}' outside Oriental region → 0 pts"
     logger.debug("location_score=%d  %s", score, explanation)
     return score, explanation
+
+
+def compute_location_score_regional(
+    sme_region_id: str,
+    need_port_region_id: str,
+    need_visibility: str,
+) -> Tuple[int, str]:
+    """Compute location score using region-aware proximity rules.
+
+    For national needs, proximity still adds value but scores are moderated.
+    For regional needs, only same-region and adjacent-region SMEs score well.
+
+    Args:
+        sme_region_id (str): Region ID of the SME.
+        need_port_region_id (str): Region ID of the port publishing the need.
+        need_visibility (str): Visibility scope — regional | national.
+
+    Returns:
+        Tuple[int, str]: (score 0-20, human-readable explanation).
+    """
+    if need_visibility == "national":
+        if sme_region_id == need_port_region_id:
+            return 15, "Besoin national — même région"
+        if sme_region_id in REGION_ADJACENCY.get(need_port_region_id, []):
+            return 10, "Besoin national — région adjacente"
+        return 6, "Besoin national — région éloignée"
+
+    # Regional need
+    if sme_region_id == need_port_region_id:
+        return 20, "Même région → score max"
+    if sme_region_id in REGION_ADJACENCY.get(need_port_region_id, []):
+        return 12, "Région adjacente → score partiel"
+    return 5, "Région éloignée → score minimal"
 
 
 def compute_reputation_score(reputation: float) -> Tuple[int, str]:
@@ -149,8 +200,7 @@ def compute_capacity_score(
     1. Extract first integer from each text (e.g. "8 trucks" → 8).
     2. If SME number >= required number → full score (25).
     3. If SME number < required number → proportional score.
-    4. If either text is unparseable → partial credit (12) when both non-empty,
-       else 0.
+    4. If either text is unparseable → partial credit (12) when both non-empty, else 0.
 
     Args:
         capacity_summary (str): SME's declared capacity statement.
@@ -193,6 +243,9 @@ def compute_capacity_score(
 def compute_match(sme: Dict[str, Any], need: Dict[str, Any]) -> MatchResult:
     """Compute a full MatchResult between one SME and one Need.
 
+    Uses region-aware location scoring when both SME and need have region data;
+    falls back to city-based scoring for backward compatibility.
+
     Args:
         sme (Dict[str, Any]): SME record dict.
         need (Dict[str, Any]): Need record dict.
@@ -201,9 +254,22 @@ def compute_match(sme: Dict[str, Any], need: Dict[str, Any]) -> MatchResult:
         MatchResult: Populated match with score breakdown and justification.
     """
     s_sector, e_sector = compute_sector_score(sme.get("tags", []), need.get("tags", []))
-    s_location, e_location = compute_location_score(
-        sme.get("city", ""), need.get("location_zone", "")
-    )
+
+    # Region-aware location scoring (preferred) vs city-based fallback
+    sme_region = sme.get("region_id", "")
+    need_port_id = need.get("port_id", "")
+    need_visibility = need.get("visibility", "regional")
+    need_port_region = PORT_REGION.get(need_port_id, "")
+
+    if sme_region and need_port_region:
+        s_location, e_location = compute_location_score_regional(
+            sme_region, need_port_region, need_visibility
+        )
+    else:
+        s_location, e_location = compute_location_score(
+            sme.get("city", ""), need.get("location_zone", "")
+        )
+
     s_reputation, e_reputation = compute_reputation_score(sme.get("reputation_score", 0.0))
     s_capacity, e_capacity = compute_capacity_score(
         sme.get("capacity_summary", ""), need.get("required_capacity", "")

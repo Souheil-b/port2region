@@ -25,12 +25,16 @@ RUNTIME_FILES: Dict[str, Path] = {
     "gaps": DATA_DIR / "gaps.json",
     "applications": DATA_DIR / "applications.json",
     "notifications": DATA_DIR / "notifications.json",
+    "regions": DATA_DIR / "regions.json",
+    "ports": DATA_DIR / "ports.json",
 }
 
 SEED_FILES: Dict[str, Path] = {
     "smes": SEED_DIR / "mock_smes.json",
     "needs": SEED_DIR / "mock_needs.json",
     "applications": SEED_DIR / "mock_applications.json",
+    "regions": SEED_DIR / "regions.json",
+    "ports": SEED_DIR / "ports.json",
 }
 
 

@@ -3,12 +3,13 @@ import { useNavigate } from "react-router-dom"
 import PropTypes from "prop-types"
 import {
   Star, MapPin, Briefcase, Loader2, X, Send, CheckCircle2,
-  Lock, ChevronRight, Zap, TrendingUp,
+  Lock, ChevronRight, Zap, TrendingUp, Pencil,
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { needsApi, applicationsApi, matchingApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
 import PremiumToggle, { usePremium } from "../components/PremiumToggle"
+import EditProfileModal from "../components/EditProfileModal"
 
 const LS_CURRENT = "port2region_current_pme"
 
@@ -143,6 +144,9 @@ export default function SMEDashboard() {
   const [matchLoading, setMatchLoading] = useState(false)
   const [matchDone, setMatchDone] = useState(false)
 
+  // Edit modal
+  const [editModalOpen, setEditModalOpen] = useState(false)
+
   // Apply modal
   const [applyModal, setApplyModal] = useState(null)
   const [appliedNeeds, setAppliedNeeds] = useState(new Set())
@@ -222,6 +226,15 @@ export default function SMEDashboard() {
           <span className="bg-white/20 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <Briefcase size={11} /> {SECTOR_LABELS[sme.sector] || sme.sector}
           </span>
+          {sme.is_available !== false ? (
+            <span className="flex items-center gap-1 text-xs bg-green-500/20 text-green-200 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full inline-block" /> Disponible
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-xs bg-gray-500/20 text-gray-300 px-2.5 py-1 rounded-full">
+              <span className="w-1.5 h-1.5 bg-gray-400 rounded-full inline-block" /> Indisponible
+            </span>
+          )}
         </div>
       </div>
 
@@ -248,9 +261,14 @@ export default function SMEDashboard() {
           ) : (
             <p className="text-xs text-muted mb-4">Aucun tag de compétence — inscrivez votre PME pour enrichir votre profil.</p>
           )}
-          {/* CTA: consulter les besoins */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            <p className="text-xs text-muted">Vous cherchez des opportunités ?</p>
+          {/* CTA row */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100 gap-2">
+            <button
+              className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
+              onClick={() => setEditModalOpen(true)}
+            >
+              <Pencil size={11} /> Modifier mon profil
+            </button>
             <button
               className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1"
               onClick={() => navigate("/needs")}
@@ -408,6 +426,15 @@ export default function SMEDashboard() {
           </div>
         )}
       </section>
+
+      {/* Edit Profile Modal */}
+      {editModalOpen && sme && (
+        <EditProfileModal
+          sme={sme}
+          onClose={() => setEditModalOpen(false)}
+          onUpdated={(updated) => setSme(updated)}
+        />
+      )}
 
       {/* Apply Modal */}
       {applyModal && (

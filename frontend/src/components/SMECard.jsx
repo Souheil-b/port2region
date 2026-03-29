@@ -13,6 +13,8 @@ const SECTOR_DOT = {
 }
 
 export default function SMECard({ sme }) {
+  const isAvailable = sme.is_available !== false
+
   return (
     <div className="card p-4">
       <div className="flex items-start justify-between mb-2">
@@ -20,7 +22,20 @@ export default function SMECard({ sme }) {
           <div className={`w-2 h-2 rounded-full mt-0.5 ${SECTOR_DOT[sme.sector] || "bg-gray-400"}`} />
           <span className="text-sm font-semibold text-slate-900">{sme.name}</span>
         </div>
-        <span className="badge bg-gray-50 text-gray-600 border border-gray-200">{formatSector(sme.sector)}</span>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {isAvailable ? (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-green-700 bg-green-50 border border-green-200 px-1.5 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />
+              Disponible
+            </span>
+          ) : (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded-full">
+              <span className="w-1.5 h-1.5 bg-gray-300 rounded-full inline-block" />
+              Indisponible
+            </span>
+          )}
+          <span className="badge bg-gray-50 text-gray-600 border border-gray-200">{formatSector(sme.sector)}</span>
+        </div>
       </div>
       <div className="flex items-center gap-3 text-xs text-muted mb-3">
         <span className="flex items-center gap-1"><MapPin size={11} /> {sme.city}</span>

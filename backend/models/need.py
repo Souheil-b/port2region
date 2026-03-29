@@ -17,6 +17,8 @@ class NeedCreate(BaseModel):
         deadline_days: Number of days until the need expires.
         min_score: Minimum matching score threshold (default 60).
         published_by: Organisation or contact publishing the need.
+        port_id: Port identifier where the need originates.
+        visibility: Visibility scope — regional | national.
         preset_tags: Optional pre-computed tags that bypass Claude extraction (demo use).
         preset_required_capacity: Optional capacity string that bypasses Claude (demo use).
     """
@@ -27,6 +29,8 @@ class NeedCreate(BaseModel):
     deadline_days: int
     min_score: int = 60
     published_by: str
+    port_id: str = "nador_west_med"
+    visibility: str = "regional"
     preset_tags: Optional[List[str]] = None
     preset_required_capacity: Optional[str] = None
 
@@ -45,6 +49,8 @@ class Need(BaseModel):
         min_score: Minimum matching threshold.
         published_by: Publishing organisation.
         published_at: ISO 8601 publication timestamp.
+        port_id: Port identifier where the need originates.
+        visibility: Visibility scope — regional | national.
         status: Lifecycle status — open | matched | gap.
     """
 
@@ -58,4 +64,22 @@ class Need(BaseModel):
     min_score: int = 60
     published_by: str
     published_at: datetime = Field(default_factory=datetime.utcnow)
+    port_id: str = "nador_west_med"
+    visibility: str = "regional"
     status: str = "open"
+
+
+class NeedUpdate(BaseModel):
+    """Partial update payload for an existing Need.
+
+    Only provided fields are updated; unprovided fields remain unchanged.
+
+    Attributes:
+        tags: Requirement tags list.
+        visibility: Visibility scope — regional | national.
+        required_capacity: Capacity requirement statement.
+    """
+
+    tags: Optional[List[str]] = None
+    visibility: Optional[str] = None
+    required_capacity: Optional[str] = None

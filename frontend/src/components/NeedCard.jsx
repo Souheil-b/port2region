@@ -24,6 +24,11 @@ export default function NeedCard({ need, onClick }) {
       <div className="flex items-center gap-3 text-xs text-muted mb-2">
         <span className="flex items-center gap-1"><MapPin size={11} /> {need.location_zone}</span>
         <span className="flex items-center gap-1"><Clock size={11} /> {need.deadline_days}j</span>
+        {need.visibility === "national" && (
+          <span className="badge bg-purple-50 text-purple-700 border border-purple-200 text-[10px] flex-shrink-0">
+            National
+          </span>
+        )}
         {onClick && <ChevronRight size={11} className="ml-auto text-brand" />}
       </div>
       {need.tags?.length > 0 && (

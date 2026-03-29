@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { Building2, Loader2, UserPlus, MapPin, Briefcase, ChevronRight } from "lucide-react"
+import { Building2, Loader2, UserPlus, MapPin, ChevronRight } from "lucide-react"
 import toast from "react-hot-toast"
 import PropTypes from "prop-types"
-import { smeApi } from "../api/client"
+import { smeApi, geographyApi } from "../api/client"
 import TagBadge from "../components/TagBadge"
+import TagConfirmStep from "../components/TagConfirmStep"
 import DemoFillButton from "../components/DemoFillButton"
 
 const LS_CURRENT = "port2region_current_pme"
@@ -27,7 +28,6 @@ const SECTOR_COLORS = {
   maintenance: "bg-cyan-50 text-cyan-700 border-cyan-200",
 }
 
-const CITIES = ["Nador", "Oujda", "Berkane", "Taourirt", "Autre"]
 const SECTORS = [
   { value: "transport",   label: "Transport & Logistique" },
   { value: "agroalim",    label: "Agroalimentaire" },
@@ -38,12 +38,40 @@ const SECTORS = [
 ]
 
 const DEMO_REGISTER = [
-  { name: "TRANSMED OUJDA SARL",  city: "Oujda",   sector: "transport",   raw_description: "Transport de conteneurs et logistique portuaire, flotte de 4 camions plateau 6j/7, certifiés ADR. Zone Orientale et port Nador." },
-  { name: "TECHNO FOOD BERKANE",  city: "Berkane",  sector: "agroalim",   raw_description: "Traiteur industriel, restauration collective 300 repas/jour, normes ONSSA, livraison chantiers, personnel HACCP." },
-  { name: "ORIENT SYSTEMS IT",    city: "Nador",    sector: "it",          raw_description: "Systèmes d'information portuaires, intégration EDI, réseaux industriels, équipe 8 développeurs." },
+  {
+    name: "TRANSMED CASA SARL",
+    city: "Casablanca",
+    sector: "transport",
+    region_id: "casablanca_settat",
+    raw_description: "Transport de conteneurs et logistique portuaire au port de Casablanca, flotte de 6 camions plateau, disponibilité 6j/7, certifiés OEA.",
+  },
+  {
+    name: "ORIENT SYSTEMS IT",
+    city: "Nador",
+    sector: "it",
+    region_id: "oriental",
+    raw_description: "Systèmes d'information portuaires, intégration EDI, réseaux industriels, équipe 8 développeurs.",
+  },
+  {
+    name: "TECHNIMAINT BERKANE",
+    city: "Berkane",
+    sector: "maintenance",
+    region_id: "oriental",
+    raw_description: "Maintenance industrielle et électromécanique, équipements portuaires et industriels, équipe 12 techniciens, intervention H24.",
+  },
 ]
 
-const INITIAL_FORM = { name: "", city: "", sector: "", raw_description: "" }
+const INITIAL_FORM = {
+  name: "",
+  city: "",
+  sector: "",
+  raw_description: "",
+  region_id: "",
+  port_id: "",
+  rce: "",
+  ice: "",
+  is_available: true,
+}
 
 // ── SME card (clickable) ─────────────────────────────────────────────────────
 function SmeCard({ sme, onSelect }) {
@@ -65,6 +93,11 @@ function SmeCard({ sme, onSelect }) {
           <span className={`text-[10px] font-semibold border px-2 py-0.5 rounded-full ${SECTOR_COLORS[sme.sector] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
             {SECTOR_LABELS[sme.sector] || sme.sector}
           </span>
+          {/* availability dot */}
+          <span
+            className={`w-2 h-2 rounded-full flex-shrink-0 ${sme.is_available !== false ? "bg-green-400" : "bg-gray-300"}`}
+            title={sme.is_available !== false ? "Disponible" : "Non disponible"}
+          />
           <ChevronRight size={14} className="text-muted group-hover:text-brand transition-colors" />
         </div>
       </div>
@@ -92,9 +125,28 @@ export default function PMEAuth() {
   const [registering, setRegistering] = useState(false)
   const [registered, setRegistered] = useState(null)
 
+  // Geography data
+  const [regions, setRegions] = useState([])
+  const [ports, setPorts] = useState([])
+
+  // Tag confirmation step
+  const [tagConfirmSme, setTagConfirmSme] = useState(null)
+
   useEffect(() => {
     smeApi.list().then(r => setSmes(r.data.data || [])).finally(() => setLoading(false))
+    geographyApi.regions().then(r => setRegions(r.data?.data ?? []))
+    geographyApi.ports().then(r => setPorts(r.data?.data ?? []))
   }, [])
+
+  // When region changes, reset port selection
+  function handleRegionChange(regionId) {
+    setForm(prev => ({ ...prev, region_id: regionId, port_id: "" }))
+  }
+
+  function filteredPorts() {
+    if (!form.region_id) return ports
+    return ports.filter(p => p.region_id === form.region_id)
+  }
 
   function handleSelect(sme) {
     localStorage.setItem(LS_CURRENT, JSON.stringify(sme))
@@ -114,11 +166,8 @@ export default function PMEAuth() {
       const newSme = res.data.data
       setRegistered(newSme)
       setSmes(prev => [newSme, ...prev])
-      toast.success("PME créée — connexion automatique dans 2s…")
-      setTimeout(() => {
-        localStorage.setItem(LS_CURRENT, JSON.stringify(newSme))
-        navigate("/smes-dashboard")
-      }, 2000)
+      toast.success("PME créée — confirmez vos tags ci-dessous")
+      setTagConfirmSme(newSme)
     } catch (err) {
       toast.error(err.response?.data?.error || "Erreur lors de l'inscription")
     } finally {
@@ -126,9 +175,52 @@ export default function PMEAuth() {
     }
   }
 
+  async function handleTagConfirm(finalTags) {
+    if (!tagConfirmSme) return
+    // Update tags if changed
+    if (JSON.stringify(finalTags) !== JSON.stringify(tagConfirmSme.tags)) {
+      try {
+        const res = await smeApi.update(tagConfirmSme.id, { tags: finalTags })
+        if (res.data.success) {
+          const updated = res.data.data
+          localStorage.setItem(LS_CURRENT, JSON.stringify(updated))
+          navigate("/smes-dashboard")
+          return
+        }
+      } catch {
+        // Fall through to navigate anyway
+      }
+    }
+    localStorage.setItem(LS_CURRENT, JSON.stringify(tagConfirmSme))
+    navigate("/smes-dashboard")
+  }
+
   const filtered = smes.filter(s =>
     !search || s.name.toLowerCase().includes(search.toLowerCase()) || s.city.toLowerCase().includes(search.toLowerCase())
   )
+
+  // Show tag confirmation step after registration
+  if (tagConfirmSme) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-10">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-9 h-9 bg-brand/10 rounded-xl flex items-center justify-center">
+            <Building2 size={18} className="text-brand" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Tags extraits — {tagConfirmSme.name}</h1>
+            <p className="text-xs text-muted">Confirmez ou ajustez vos tags avant d&apos;accéder à votre espace</p>
+          </div>
+        </div>
+        <TagConfirmStep
+          tags={tagConfirmSme.tags || []}
+          sector={tagConfirmSme.sector}
+          onConfirm={handleTagConfirm}
+          onBack={() => setTagConfirmSme(null)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
@@ -159,10 +251,9 @@ export default function PMEAuth() {
         </button>
       </div>
 
-      {/* LOGIN TAB — clickable company grid */}
+      {/* LOGIN TAB */}
       {tab === "login" && (
         <div>
-          {/* Demo banner */}
           <div className="flex items-center gap-3 bg-brand/5 border border-brand/20 rounded-xl px-4 py-3 mb-4">
             <span className="text-lg">🎭</span>
             <div>
@@ -208,21 +299,47 @@ export default function PMEAuth() {
             <div className="flex flex-wrap gap-2 p-3 bg-violet-50 border border-violet-100 rounded-lg">
               <span className="text-xs text-violet-600 font-medium w-full mb-1">✏️ Exemples de démo :</span>
               {DEMO_REGISTER.map((d, i) => (
-                <DemoFillButton key={i} label={d.name} onFill={() => setForm(d)} />
+                <DemoFillButton key={i} label={d.name} onFill={() => setForm({ ...INITIAL_FORM, ...d })} />
               ))}
             </div>
+
             <div>
               <label className="label">Nom de l&apos;entreprise</label>
               <input className="input" placeholder="Ex: TRANSORIENT SARL"
                 value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
             </div>
+
+            {/* Region + Port */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">Région</label>
+                <select
+                  className="input"
+                  value={form.region_id}
+                  onChange={e => handleRegionChange(e.target.value)}
+                >
+                  <option value="">Sélectionner</option>
+                  {regions.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="label">Port le plus proche</label>
+                <select
+                  className="input"
+                  value={form.port_id}
+                  onChange={e => setForm({ ...form, port_id: e.target.value })}
+                >
+                  <option value="">Sélectionner</option>
+                  {filteredPorts().map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="label">Ville</label>
-                <select className="input" value={form.city} onChange={e => setForm({ ...form, city: e.target.value })}>
-                  <option value="">Sélectionner</option>
-                  {CITIES.map(c => <option key={c}>{c}</option>)}
-                </select>
+                <input className="input" placeholder="Casablanca, Nador…"
+                  value={form.city} onChange={e => setForm({ ...form, city: e.target.value })} />
               </div>
               <div>
                 <label className="label">Secteur</label>
@@ -232,12 +349,43 @@ export default function PMEAuth() {
                 </select>
               </div>
             </div>
+
+            {/* RCE + ICE */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="label">RCE <span className="text-muted font-normal">(optionnel)</span></label>
+                <input className="input" placeholder="RC/121323/2019"
+                  value={form.rce} onChange={e => setForm({ ...form, rce: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">ICE <span className="text-muted font-normal">(optionnel)</span></label>
+                <input className="input" placeholder="001234567000012"
+                  value={form.ice} onChange={e => setForm({ ...form, ice: e.target.value })} />
+              </div>
+            </div>
+
             <div>
               <label className="label">Description des services</label>
               <textarea className="input resize-none" rows={4}
                 placeholder="Décrivez vos services, capacités, certifications…"
                 value={form.raw_description} onChange={e => setForm({ ...form, raw_description: e.target.value })} />
             </div>
+
+            {/* Availability toggle */}
+            <label className="flex items-center gap-3 cursor-pointer p-3 rounded-xl border border-gray-200 hover:border-brand/40 transition-colors">
+              <input
+                type="checkbox"
+                checked={form.is_available}
+                onChange={e => setForm({ ...form, is_available: e.target.checked })}
+                className="w-4 h-4 accent-brand"
+              />
+              <div>
+                <p className="text-sm font-medium text-slate-900">Disponible pour des missions</p>
+                <p className="text-xs text-muted">Votre profil apparaît comme disponible dans les recherches</p>
+              </div>
+              <span className={`ml-auto w-2.5 h-2.5 rounded-full flex-shrink-0 ${form.is_available ? "bg-green-500" : "bg-gray-300"}`} />
+            </label>
+
             <button type="submit" className="btn-primary w-full justify-center py-2.5" disabled={registering}>
               {registering
                 ? <><Loader2 size={15} className="animate-spin" /> Création en cours…</>
@@ -245,7 +393,7 @@ export default function PMEAuth() {
             </button>
           </form>
 
-          {registered && (
+          {registered && !tagConfirmSme && (
             <div className="card p-4 mt-4 border-green-200 bg-green-50">
               <p className="text-sm font-semibold text-success mb-2">✓ PME créée — Tags extraits :</p>
               <div className="flex flex-wrap gap-1.5">

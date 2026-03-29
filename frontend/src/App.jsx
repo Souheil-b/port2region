@@ -13,9 +13,9 @@ import SMEProfile from "./pages/SMEProfile.jsx"
 import NeedPublish from "./pages/NeedPublish.jsx"
 import NeedList from "./pages/NeedList.jsx"
 import NeedDetail from "./pages/NeedDetail.jsx"
-
 import InvestorDashboard from "./pages/InvestorDashboard.jsx"
 import MarketDashboard from "./pages/MarketDashboard.jsx"
+import SubscriptionPage from "./pages/SubscriptionPage.jsx"
 import PropTypes from "prop-types"
 
 function Layout({ children }) {
@@ -23,7 +23,6 @@ function Layout({ children }) {
     <div className="min-h-screen" style={{ backgroundColor: "#f8fafc" }}>
       <Navbar />
       <main>{children}</main>
-      {/* PremiumToggle moved to Navbar */}
     </div>
   )
 }
@@ -67,6 +66,13 @@ function App() {
           </RouteGuard>
         } />
 
+        {/* Subscription — pme + investisseur */}
+        <Route path="/subscription" element={
+          <RouteGuard allowedRoles={["pme", "investisseur"]}>
+            <Layout><SubscriptionPage /></Layout>
+          </RouteGuard>
+        } />
+
         {/* Shared — all authenticated roles */}
         <Route path="/smes" element={
           <RouteGuard allowedRoles={["pme", "port", "investisseur"]}>
@@ -88,7 +94,6 @@ function App() {
             <Layout><NeedDetail /></Layout>
           </RouteGuard>
         } />
-        {/* /matching removed — matching is in NeedDetail (Port) and SMEDashboard premium (PME) */}
         <Route path="/register" element={
           <RouteGuard allowedRoles={["pme", "port"]}>
             <Layout><SMERegister /></Layout>
